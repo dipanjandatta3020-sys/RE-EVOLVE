@@ -553,7 +553,7 @@ body {
 
 /* Pause marquee on hover (desktop/pointing devices only) */
 @media (hover: hover) and (pointer: fine) {
-  #authorityMarquee:hover .marquee-track {
+  .marquee-row:hover .marquee-track {
     animation-play-state: paused;
   }
 }

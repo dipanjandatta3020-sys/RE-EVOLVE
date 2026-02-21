@@ -168,6 +168,8 @@ Promise.all(eagerPromises).then(() => {
 
 // ─── RENDER A SINGLE FRAME — cover-style (fills viewport, center-crop) ────
 
+let lastDrawnImage = null; // Cache the most recently drawn frame 
+
 function renderFrame(index) {
     if (index < 0 || index >= FRAME_COUNT) return;
 
@@ -182,8 +184,17 @@ function renderFrame(index) {
                 break;
             }
         }
-        if (!fallbackFound) return; // Wait if none are loaded at all
+        if (!fallbackFound) {
+            // Wait if none are loaded at all, but draw the last frame if available
+            if (lastDrawnImage) {
+                img = lastDrawnImage;
+            } else {
+                return;
+            }
+        }
     }
+
+    lastDrawnImage = img; // Update the cache
 
     const iw = img.naturalWidth;
     const ih = img.naturalHeight;
