@@ -36,14 +36,25 @@ body {
   background: #000;
 }
 
+@media (max-width: 768px) {
+  #heroWrapper {
+    height: 400vh;
+    /* Prolong the scroll distance specifically for mobile to ensure the animation finishes */
+  }
+}
+
 /* ── Sticky viewport container — everything overlaps here ── */
 #heroSticky {
   position: sticky;
   top: 0;
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
+  /* Apple/Safari optimization to prevent UI jumps */
   overflow: hidden;
   background: #000;
+  transform: translateZ(0);
+  /* Hardware acceleration for smoother iOS rendering */
 }
 
 /* ── Layer 1: Frame animation canvas (THE background) ── */
@@ -537,6 +548,13 @@ body {
 
   100% {
     transform: translateX(0);
+  }
+}
+
+/* Pause marquee on hover (desktop/pointing devices only) */
+@media (hover: hover) and (pointer: fine) {
+  #authorityMarquee:hover .marquee-track {
+    animation-play-state: paused;
   }
 }
 

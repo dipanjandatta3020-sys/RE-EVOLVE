@@ -111,9 +111,8 @@ function dismissPreloader() {
     }, remaining);
 }
 
-// ─── PRELOAD FRAMES — eager first 10, idle-load rest ───────────────────────
-
-const EAGER_COUNT = 10;
+// Load first EAGER_COUNT frames immediately for fast first paint
+const EAGER_COUNT = isMobile ? 3 : 6; // Less eager frames on mobile for faster TTI
 
 function loadFrame(index) {
     return new Promise((resolve) => {
@@ -127,7 +126,6 @@ function loadFrame(index) {
     });
 }
 
-// Load first EAGER_COUNT frames immediately for fast first paint
 const eagerPromises = [];
 for (let i = 0; i < Math.min(EAGER_COUNT, FRAME_COUNT); i++) {
     eagerPromises.push(loadFrame(i));
@@ -144,7 +142,6 @@ function loadRemainingFrames() {
     if (nextFrameToLoad >= FRAME_COUNT) {
         if (framesLoaded >= FRAME_COUNT) {
             console.log(`All ${FRAME_COUNT} scroll frames preloaded`);
-            dismissPreloader();
         }
         return;
     }
@@ -164,6 +161,8 @@ function loadRemainingFrames() {
 }
 
 Promise.all(eagerPromises).then(() => {
+    // DISMISS PRELOADER IMMEDIATELY AFTER EAGER FRAMES ARE LOADED
+    dismissPreloader();
     scheduleIdle(loadRemainingFrames);
 });
 
@@ -171,8 +170,20 @@ Promise.all(eagerPromises).then(() => {
 
 function renderFrame(index) {
     if (index < 0 || index >= FRAME_COUNT) return;
-    const img = frames[index];
-    if (!img || !img.complete || !img.naturalWidth) return;
+
+    // Fallback logic: if exact frame isn't loaded yet, find the closest previous loaded frame
+    let img = frames[index];
+    if (!img || !img.complete || !img.naturalWidth) {
+        let fallbackFound = false;
+        for (let i = index - 1; i >= 0; i--) {
+            if (frames[i] && frames[i].complete && frames[i].naturalWidth) {
+                img = frames[i];
+                fallbackFound = true;
+                break;
+            }
+        }
+        if (!fallbackFound) return; // Wait if none are loaded at all
+    }
 
     const iw = img.naturalWidth;
     const ih = img.naturalHeight;
