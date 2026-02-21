@@ -26,22 +26,18 @@ body {
   overflow-x: hidden;
   width: 100vw;
   margin: 0;
+  overscroll-behavior: none;
 }
 
 /* ── ONE unified hero wrapper — provides scroll distance ── */
 #heroWrapper {
   position: relative;
-  height: 220vh;
-  /* 120vh scroll distance */
+  height: 250vh;
+  /* 150vh scroll distance — gives last frame room to hold */
   background: #000;
 }
 
-@media (max-width: 768px) {
-  #heroWrapper {
-    height: 400vh;
-    /* Prolong the scroll distance specifically for mobile to ensure the animation finishes */
-  }
-}
+/* heroWrapper mobile height is set in the main 768px media query below */
 
 /* ── Sticky viewport container — everything overlaps here ── */
 #heroSticky {
@@ -49,12 +45,13 @@ body {
   top: 0;
   width: 100vw;
   height: 100vh;
-  height: 100dvh;
-  /* Apple/Safari optimization to prevent UI jumps */
+  height: 100svh;
+  /* svh = small viewport height — consistent on mobile, ignores dynamic toolbar */
   overflow: hidden;
   background: #000;
   transform: translateZ(0);
   /* Hardware acceleration for smoother iOS rendering */
+  touch-action: pan-y;
 }
 
 /* ── Layer 1: Frame animation canvas (THE background) ── */
@@ -66,6 +63,9 @@ body {
   height: 100%;
   z-index: 1;
   display: block;
+  will-change: transform;
+  image-rendering: high-quality;
+  transform: translateZ(0);
 }
 
 /* ── Layer 2: Shared overlay gradient ── */
@@ -93,6 +93,8 @@ body {
   height: 100%;
   z-index: 3;
   pointer-events: none;
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 /* ── Layer 4 & 5: Text content overlays ── */
@@ -109,6 +111,8 @@ body {
   z-index: 10;
   text-align: center;
   pointer-events: none;
+  will-change: opacity, transform;
+  transform: translateZ(0);
 }
 
 /* Hero 1 text — visible initially */
@@ -181,6 +185,7 @@ body {
   display: flex;
   align-items: baseline;
   gap: 0;
+  white-space: nowrap;
 }
 
 .loading-dots {
@@ -521,6 +526,8 @@ body {
   gap: 0;
   white-space: nowrap;
   will-change: transform;
+  width: max-content;
+  animation-play-state: running;
 }
 
 .marquee-track-right {
@@ -890,15 +897,14 @@ body {
 @media (max-width: 768px) {
 
   /* ── Mobile performance layer ── */
-  html,
   body {
-    overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Reduce hero scroll distance on mobile — eliminates gap before programs */
+  /* Hero scroll distance on mobile — 300vh gives 200vh of scroll travel for 238 frames */
   #heroWrapper {
-    height: 170vh;
+    height: 350vh;
+    /* 250vh scroll travel on mobile for smoother frame scrubbing */
   }
 
   /* Reduce backdrop-filter complexity on mobile */
@@ -942,7 +948,7 @@ body {
   }
 
   .preloader-text {
-    font-size: clamp(1.2rem, 6vw, 2rem);
+    font-size: clamp(0.9rem, 4.5vw, 2rem);
     letter-spacing: 0.15em;
   }
 
@@ -1155,7 +1161,8 @@ body {
 
   .marquee-track-right,
   .marquee-track-left {
-    animation: none;
+    /* Keep marquee moving even with reduced-motion, just slower */
+    animation-duration: 60s;
   }
 
   .program-card,

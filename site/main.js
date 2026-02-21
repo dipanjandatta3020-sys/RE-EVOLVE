@@ -31,7 +31,7 @@ const FRAME_COUNT = FRAME_END - FRAME_START + 1; // 238
 
 const frameNames = [];
 for (let i = FRAME_START; i <= FRAME_END; i++) {
-    frameNames.push(`frame_${String(i).padStart(4, '0')}.png`);
+    frameNames.push(`frame_${String(i).padStart(4, '0')}.webp`);
 }
 
 const frames = [];
@@ -41,19 +41,23 @@ let currentFrameIndex = -1;
 // ─── CACHED DIMENSIONS ────────────────────────────────────────────────────
 
 let cachedW = window.innerWidth;
-let cachedH = window.innerHeight;
+let cachedH = window.visualViewport ? window.visualViewport.height : window.innerHeight;
 
 // ─── CANVAS SIZING ─────────────────────────────────────────────────────────
 
 let resizeRafPending = false;
 function resizeCanvases() {
-    const dpr = isMobile ? 1 : (window.devicePixelRatio || 1);
+    // Use full device pixel ratio on all devices for maximum sharpness
+    const dpr = window.devicePixelRatio || 1;
     cachedW = window.innerWidth;
-    cachedH = window.innerHeight;
+    cachedH = window.visualViewport ? window.visualViewport.height : window.innerHeight;
 
     scrollCanvas.width = cachedW * dpr;
     scrollCanvas.height = cachedH * dpr;
     scrollCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    // Use high quality image smoothing
+    scrollCtx.imageSmoothingEnabled = true;
+    scrollCtx.imageSmoothingQuality = 'high';
 
     dustCanvas.width = cachedW * dpr;
     dustCanvas.height = cachedH * dpr;
@@ -89,12 +93,11 @@ const dotInterval = setInterval(() => {
 const preloaderStart = Date.now();
 
 function dismissPreloader() {
-    clearInterval(dotInterval);
-
     const elapsed = Date.now() - preloaderStart;
     const remaining = Math.max(0, 1500 - elapsed);
 
     setTimeout(() => {
+        clearInterval(dotInterval);
         window.scrollTo(0, 0);
         document.body.style.overflow = "";
 
@@ -117,7 +120,7 @@ const EAGER_COUNT = isMobile ? 3 : 6; // Less eager frames on mobile for faster 
 function loadFrame(index) {
     return new Promise((resolve) => {
         const img = new Image();
-        img.src = `/ScrollAnimationIMG/${frameNames[index]}`;
+        img.src = `/ScrollAnimationIMG_webp/${frameNames[index]}`;
         img.onload = img.onerror = () => {
             framesLoaded++;
             resolve();
@@ -166,47 +169,69 @@ Promise.all(eagerPromises).then(() => {
     scheduleIdle(loadRemainingFrames);
 });
 
-// ─── RENDER A SINGLE FRAME — cover-style (fills viewport, center-crop) ────
+// ─── RENDER A SINGLE FRAME WITH INTERPOLATION ───────────────────────────────
 
 let lastDrawnImage = null; // Cache the most recently drawn frame 
+let bgCanvasMsgOnce = false;
 
-function renderFrame(index) {
-    if (index < 0 || index >= FRAME_COUNT) return;
-
-    // Fallback logic: if exact frame isn't loaded yet, find the closest previous loaded frame
-    let img = frames[index];
-    if (!img || !img.complete || !img.naturalWidth) {
-        let fallbackFound = false;
-        for (let i = index - 1; i >= 0; i--) {
-            if (frames[i] && frames[i].complete && frames[i].naturalWidth) {
-                img = frames[i];
-                fallbackFound = true;
-                break;
-            }
-        }
-        if (!fallbackFound) {
-            // Wait if none are loaded at all, but draw the last frame if available
-            if (lastDrawnImage) {
-                img = lastDrawnImage;
-            } else {
-                return;
-            }
-        }
-    }
-
-    lastDrawnImage = img; // Update the cache
-
+function drawImageCover(ctx, img) {
     const iw = img.naturalWidth;
     const ih = img.naturalHeight;
-
     const scale = Math.max(cachedW / iw, cachedH / ih);
     const dw = iw * scale;
     const dh = ih * scale;
     const ox = (cachedW - dw) / 2;
     const oy = (cachedH - dh) / 2;
+    ctx.drawImage(img, ox, oy, dw, dh);
+}
+
+function renderFrame(index, fractionalProgress = 0) {
+    if (index < 0 || index >= FRAME_COUNT) return;
+
+    let img1 = frames[index];
+    let img2 = (index + 1 < FRAME_COUNT) ? frames[index + 1] : img1;
+
+    // Fallback logic if frames aren't loaded
+    if (!img1 || !img1.complete || !img1.naturalWidth) {
+        let fallbackFound = false;
+        for (let i = index - 1; i >= 0; i--) {
+            if (frames[i] && frames[i].complete && frames[i].naturalWidth) {
+                img1 = frames[i];
+                img2 = img1;
+                fractionalProgress = 0; // Disable interpolation if falling back
+                fallbackFound = true;
+                break;
+            }
+        }
+        if (!fallbackFound) {
+            if (lastDrawnImage) img1 = lastDrawnImage;
+            else return;
+        }
+    }
+
+    if (!img2 || !img2.complete || !img2.naturalWidth) {
+        img2 = img1;
+    }
+
+    lastDrawnImage = img1;
 
     scrollCtx.clearRect(0, 0, cachedW, cachedH);
-    scrollCtx.drawImage(img, ox, oy, dw, dh);
+
+    // If no fractional progress or imgs are same, simple draw
+    if (fractionalProgress <= 0.01 || img1 === img2) {
+        scrollCtx.globalAlpha = 1.0;
+        drawImageCover(scrollCtx, img1);
+        return;
+    }
+
+    // Otherwise, Crossfade (Interpolation) between adjecent frames for smooth motion
+    scrollCtx.globalAlpha = 1.0;
+    drawImageCover(scrollCtx, img1);
+
+    scrollCtx.globalAlpha = fractionalProgress;
+    drawImageCover(scrollCtx, img2);
+
+    scrollCtx.globalAlpha = 1.0; // Reset alpha
 }
 
 // ─── SCROLL-DRIVEN UPDATE — linear mapping, no easing ─────────────────────
@@ -221,17 +246,17 @@ function updateFromScroll() {
     const scrolled = -wrapperRect.top;
     const progress = Math.max(0, Math.min(1, scrolled / scrollableDistance));
 
-    // Direct linear frame index
-    const frameIndex = Math.min(FRAME_COUNT - 1, Math.floor(progress * FRAME_COUNT));
+    const exactFrame = progress * (FRAME_COUNT - 1);
+    const frameIndex = Math.floor(exactFrame);
+    const fractionalProgress = exactFrame - frameIndex;
 
-    if (frameIndex !== currentFrameIndex) {
-        currentFrameIndex = frameIndex;
-        renderFrame(currentFrameIndex);
-    }
+    // We now update on every frame if there is fraction changing
+    currentFrameIndex = frameIndex;
+    renderFrame(frameIndex, fractionalProgress);
 
     // Text layer switching — earlier threshold on mobile so second text is visible longer
     const fadeOutAt = isMobile ? 0.10 : 0.08;
-    const fadeInAt = isMobile ? 0.82 : 0.92;
+    const fadeInAt = isMobile ? 0.80 : 0.85;
 
     if (progress <= fadeOutAt) {
         contentOne.style.opacity = "1";
@@ -263,6 +288,39 @@ function onScroll() {
 window.addEventListener('scroll', onScroll, { passive: true });
 updateFromScroll();
 
+// Recalculate after full page load — critical for real mobile where
+// dynamic toolbar resizes the viewport after DOMContentLoaded
+window.addEventListener('load', () => {
+    resizeCanvases();
+    updateFromScroll();
+
+    // Delayed second refresh — catches late iOS Safari toolbar resize
+    setTimeout(() => {
+        resizeCanvases();
+        updateFromScroll();
+    }, 300);
+});
+
+// Re-sync when tab becomes visible again
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+        resizeCanvases();
+        updateFromScroll();
+    }
+});
+
+// Listen to visualViewport resize for real mobile toolbar changes
+if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', () => {
+        if (resizeRafPending) return;
+        resizeRafPending = true;
+        requestAnimationFrame(() => {
+            resizeRafPending = false;
+            resizeCanvases();
+        });
+    });
+}
+
 // ─── SUBTLE CURSOR DEPTH MOVEMENT (desktop only) ──────────────────────────
 
 if (!isTouchDevice) {
@@ -270,7 +328,7 @@ if (!isTouchDevice) {
         const x = (e.clientX / cachedW - 0.5) * 10;
         const rawY = (e.clientY / cachedH - 0.5) * 10;
         const y = Math.max(-1, rawY);
-        scrollCanvas.style.transform = `scale(1.03) translate(${x}px, ${y}px)`;
+        scrollCanvas.style.transform = `scale(1.03) translate3d(${x}px, ${y}px, 0)`;
     });
 }
 
