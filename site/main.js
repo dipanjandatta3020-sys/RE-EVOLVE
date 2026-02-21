@@ -47,17 +47,24 @@ let cachedH = window.visualViewport ? window.visualViewport.height : window.inne
 
 let resizeRafPending = false;
 function resizeCanvases() {
-    // Use full device pixel ratio on all devices for maximum sharpness
-    const dpr = window.devicePixelRatio || 1;
-    cachedW = window.innerWidth;
-    cachedH = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    // Cap device pixel ratio on mobile to save GPU crossfade rendering time
+    const dpr = isMobile ? Math.min(window.devicePixelRatio || 1, 1.5) : (window.devicePixelRatio || 1);
+
+    const stickyEl = document.getElementById('heroSticky');
+    cachedW = stickyEl.clientWidth;
+    cachedH = stickyEl.clientHeight;
 
     scrollCanvas.width = cachedW * dpr;
     scrollCanvas.height = cachedH * dpr;
     scrollCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    // Use high quality image smoothing
-    scrollCtx.imageSmoothingEnabled = true;
-    scrollCtx.imageSmoothingQuality = 'high';
+
+    // Only use high quality rendering on desktop. Mobile GPUs choke on crossfading it.
+    if (!isMobile) {
+        scrollCtx.imageSmoothingEnabled = true;
+        scrollCtx.imageSmoothingQuality = 'high';
+    } else {
+        scrollCtx.imageSmoothingEnabled = false;
+    }
 
     dustCanvas.width = cachedW * dpr;
     dustCanvas.height = cachedH * dpr;
@@ -177,11 +184,17 @@ let bgCanvasMsgOnce = false;
 function drawImageCover(ctx, img) {
     const iw = img.naturalWidth;
     const ih = img.naturalHeight;
+
+    // Use Cover mode algorithm for all devices: no black bars
     const scale = Math.max(cachedW / iw, cachedH / ih);
+
     const dw = iw * scale;
     const dh = ih * scale;
+
+    // Center the custom scaled image
     const ox = (cachedW - dw) / 2;
     const oy = (cachedH - dh) / 2;
+
     ctx.drawImage(img, ox, oy, dw, dh);
 }
 
