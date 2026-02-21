@@ -1,0 +1,1155 @@
+:root {
+  --bg-color: #000;
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.8);
+  --font-serif: 'Cinzel', serif;
+  --font-sans: 'Montserrat', sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M4 0 L4 20 L8 16 L12 24 L14 23 L10 15 L16 15 Z' fill='black'/%3E%3C/svg%3E") 4 0, default;
+}
+
+/* White cursor when scrolled past hero */
+body.cursor-light,
+body.cursor-light * {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M4 0 L4 20 L8 16 L12 24 L14 23 L10 15 L16 15 Z' fill='white'/%3E%3C/svg%3E") 4 0, default;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  width: 100vw;
+  margin: 0;
+}
+
+/* ── ONE unified hero wrapper — provides scroll distance ── */
+#heroWrapper {
+  position: relative;
+  height: 220vh;
+  /* 120vh scroll distance */
+  background: #000;
+}
+
+/* ── Sticky viewport container — everything overlaps here ── */
+#heroSticky {
+  position: sticky;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #000;
+}
+
+/* ── Layer 1: Frame animation canvas (THE background) ── */
+#scrollCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  display: block;
+}
+
+/* ── Layer 2: Shared overlay gradient ── */
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom,
+      rgba(0, 0, 0, 0.5) 0%,
+      transparent 30%,
+      transparent 70%,
+      rgba(0, 0, 0, 0.5) 100%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* ── Layer 3: Shared particle canvas ── */
+#dust {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* ── Layer 4 & 5: Text content overlays ── */
+.content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  text-align: center;
+  pointer-events: none;
+}
+
+/* Hero 1 text — visible initially */
+#contentOne {
+  opacity: 1;
+}
+
+/* Hero 2 text — hidden initially */
+#contentTwo {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.title {
+  font-family: var(--font-serif);
+  font-size: clamp(3rem, 12vw, 8rem);
+  font-weight: 400;
+  letter-spacing: 0.25em;
+  margin-bottom: 0.1em;
+  text-transform: uppercase;
+}
+
+.subtitle {
+  font-family: var(--font-sans);
+  font-size: clamp(0.6rem, 2vw, 1.15rem);
+  font-weight: 300;
+  letter-spacing: 0.6em;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+/* ── Hero 2 typography overrides ── */
+.title-two {
+  font-size: clamp(2rem, 5vw, 5rem);
+  white-space: nowrap;
+}
+
+.subtitle-two {
+  font-size: clamp(0.6rem, 1.5vw, 1rem);
+}
+
+/* ── Preloader ── */
+#preloader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: opacity 0.6s ease, visibility 0.6s ease;
+}
+
+#preloader.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.preloader-text {
+  font-family: var(--font-serif);
+  font-size: clamp(1.6rem, 5vw, 3.2rem);
+  font-weight: 400;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+}
+
+.loading-dots {
+  display: inline-block;
+  min-width: 5ch;
+  text-align: left;
+  letter-spacing: 0.15em;
+}
+
+/* ── Programs Section ── */
+#programsSection {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  background: linear-gradient(170deg, #1a1a1f 0%, #111115 40%, #0d0d10 100%);
+  padding: 50px 24px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Radial glow behind heading */
+.programs-glow {
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 400px;
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.04) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.programs-inner {
+  position: relative;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 100px);
+}
+
+.programs-headline {
+  font-family: var(--font-serif);
+  font-size: clamp(1.2rem, 2.5vw, 2rem);
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.programs-subheading {
+  font-family: var(--font-sans);
+  font-size: clamp(0.75rem, 1.4vw, 1rem);
+  font-weight: 300;
+  letter-spacing: 0.06em;
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.55);
+  text-align: center;
+  max-width: 760px;
+  margin: 0 auto 40px;
+}
+
+/* ── Card Grid ── */
+.programs-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  flex: 1;
+}
+
+/* ── Individual Card ── */
+.program-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.program-card:hover {
+  transform: scale(1.03);
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.5),
+    0 0 30px rgba(255, 255, 255, 0.03);
+}
+
+/* Image — fills entire card */
+.card-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Frosted glass card body — overlays bottom of image */
+.card-body {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px 18px;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  z-index: 2;
+}
+
+.card-title {
+  font-family: var(--font-serif);
+  font-size: clamp(0.85rem, 1.3vw, 1.05rem);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+/* Tag pills */
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.tag-pill {
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 4px 12px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.card-desc {
+  font-family: var(--font-sans);
+  font-size: clamp(0.68rem, 0.9vw, 0.78rem);
+  font-weight: 300;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 0.02em;
+}
+
+/* ── Nutrition Section ── */
+#nutritionSection {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  background: linear-gradient(175deg, #141416 0%, #0f0f12 50%, #0b0b0e 100%);
+  padding: 80px 24px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Soft vignette edges */
+#nutritionSection::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 0, 0.4) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.nutrition-inner {
+  position: relative;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 80px;
+  z-index: 1;
+}
+
+/* ── Left: Text ── */
+.nutrition-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.nutrition-headline {
+  font-family: var(--font-serif);
+  font-size: clamp(1.6rem, 3.5vw, 2.8rem);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  margin-bottom: 24px;
+  line-height: 1.25;
+}
+
+.nutrition-sub {
+  font-family: var(--font-sans);
+  font-size: clamp(0.78rem, 1.2vw, 0.95rem);
+  font-weight: 300;
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.03em;
+  margin-bottom: 36px;
+  max-width: 480px;
+}
+
+/* Bullet list */
+.nutrition-bullets {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.nutrition-bullets li {
+  font-family: var(--font-sans);
+  font-size: clamp(0.78rem, 1.1vw, 0.9rem);
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.bullet-icon {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #b09a5c;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+/* CTA Button */
+.nutrition-cta {
+  display: inline-block;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--text-primary);
+  border: 1px solid #b09a5c;
+  border-radius: 4px;
+  padding: 14px 36px;
+  background: transparent;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.nutrition-cta:hover {
+  background: #b09a5c;
+  color: #0b0b0e;
+}
+
+/* ── Right: Food visuals ── */
+.nutrition-visuals {
+  flex: 1;
+  display: flex;
+  gap: 16px;
+  max-height: 600px;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.food-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  will-change: transform;
+}
+
+.food-col-left {
+  transform: translateY(80px);
+}
+
+.food-col-right {
+  transform: translateY(-80px);
+}
+
+.food-card {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.food-card img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── Authority Marquee Strip ── */
+#authorityMarquee {
+  position: relative;
+  width: 100%;
+  height: 110px;
+  background: linear-gradient(180deg, #0b0b0e 0%, #0e0e11 50%, #141416 100%);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+}
+
+.marquee-row {
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+}
+
+.marquee-track {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  white-space: nowrap;
+  will-change: transform;
+}
+
+.marquee-track-right {
+  animation: marqueeRight 40s linear infinite;
+}
+
+.marquee-track-left {
+  animation: marqueeLeft 40s linear infinite;
+}
+
+@keyframes marqueeRight {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes marqueeLeft {
+  0% {
+    transform: translateX(-50%);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.marquee-text {
+  font-family: var(--font-serif);
+  font-size: clamp(0.7rem, 1.3vw, 1.05rem);
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  padding: 0 4px;
+}
+
+.marquee-outlined {
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.7);
+}
+
+.marquee-filled {
+  color: rgba(255, 255, 255, 0.9);
+  -webkit-text-stroke: 0;
+}
+
+.marquee-dot {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.2);
+  padding: 0 16px;
+  flex-shrink: 0;
+}
+
+/* ── Transformation Section ── */
+#transformationSection {
+  position: relative;
+  width: 100%;
+  background: linear-gradient(175deg, #141416 0%, #0f0f12 50%, #0b0b0e 100%);
+  padding: 80px 24px 100px;
+  overflow: hidden;
+}
+
+.transformation-inner {
+  max-width: 1300px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.transformation-headline {
+  font-family: var(--font-serif);
+  font-size: clamp(1.3rem, 2.8vw, 2.2rem);
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  text-align: center;
+  margin-top: 50px;
+  margin-bottom: 0;
+}
+
+.transformation-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 18px;
+}
+
+.transformation-card {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: transform 0.3s ease;
+}
+
+.transformation-card:hover {
+  transform: scale(1.04);
+}
+
+.transformation-images {
+  display: flex;
+  width: 100%;
+}
+
+.transformation-before,
+.transformation-after {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.transformation-before img,
+.transformation-after img {
+  width: 100%;
+  height: 320px;
+  object-fit: cover;
+  display: block;
+}
+
+.transform-label {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-serif);
+  font-size: 0.45rem;
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(176, 154, 92, 0.5);
+  background: rgba(0, 0, 0, 0.35);
+  padding: 2px 8px;
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+.transformation-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.55) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+.transform-stat {
+  font-family: var(--font-serif);
+  font-size: 0.6rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  color: rgba(176, 154, 92, 0.6);
+}
+
+.transform-duration {
+  font-family: var(--font-serif);
+  font-size: 0.55rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* ── Cinematic Footer Section ── */
+#footerSection {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  max-height: 100vh;
+  background: #0b0b0b;
+  background-image: radial-gradient(ellipse at 50% 40%, rgba(40, 40, 45, 0.3) 0%, transparent 70%);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.footer-inner {
+  position: relative;
+  width: 100%;
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 40px 48px 16px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  justify-content: space-between;
+}
+
+/* Top row: Contact Us + Join Now */
+.footer-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.footer-contact-label {
+  font-family: var(--font-serif);
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-contact-label:hover {
+  color: #ffffff;
+}
+
+.footer-star {
+  font-size: 0.6rem;
+  margin-right: 6px;
+  opacity: 0.7;
+}
+
+.footer-join {
+  font-family: var(--font-serif);
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-join:hover {
+  color: #b09a5c;
+}
+
+/* Main headline */
+.footer-headline {
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 5vw, 4rem);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  line-height: 1.3;
+  color: var(--text-primary);
+  max-width: 700px;
+  margin-bottom: 20px;
+}
+
+.footer-word {
+  display: inline-block;
+  opacity: 0.35;
+  transition: opacity 0.4s ease;
+  margin-right: 0.25em;
+}
+
+.footer-word.illuminated {
+  opacity: 1;
+}
+
+/* Contact block */
+.footer-contact-block {
+  margin-bottom: 0;
+}
+
+.footer-contact-intro {
+  font-family: var(--font-serif);
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 14px;
+}
+
+.footer-contact-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.footer-email,
+.footer-phone {
+  font-family: var(--font-serif);
+  font-size: clamp(0.9rem, 1.5vw, 1.15rem);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-email:hover,
+.footer-phone:hover {
+  color: #ffffff;
+}
+
+.arrow-icon {
+  font-size: 0.75em;
+  margin-left: 4px;
+  opacity: 0.5;
+}
+
+/* Large brand name */
+.footer-brand {
+  text-align: center;
+  padding: 10px 0 5px;
+  overflow: hidden;
+}
+
+.footer-brand-name {
+  font-family: var(--font-serif);
+  font-size: clamp(3.5rem, 10vw, 11rem);
+  font-weight: 400;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.14);
+  line-height: 0.85;
+  display: block;
+  user-select: none;
+  white-space: nowrap;
+}
+
+/* Copyright */
+.footer-copyright {
+  display: flex;
+  justify-content: center;
+  padding: 6px 0 0;
+}
+
+.footer-copyright span {
+  font-family: var(--font-serif);
+  font-size: 0.6rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.2);
+}
+
+/* Hide carousel nav on desktop */
+.carousel-nav {
+  display: none;
+}
+
+/* ── Responsiveness ── */
+@media (max-width: 1024px) {
+  .programs-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .nutrition-inner {
+    gap: 48px;
+  }
+
+  .transformation-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+
+  /* ── Mobile performance layer ── */
+  html,
+  body {
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Reduce hero scroll distance on mobile — eliminates gap before programs */
+  #heroWrapper {
+    height: 170vh;
+  }
+
+  /* Reduce backdrop-filter complexity on mobile */
+  .card-body {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  /* Contain layout for paint optimization */
+  #programsSection,
+  #nutritionSection,
+  #transformationSection,
+  #authorityMarquee,
+  #footerSection {
+    contain: layout style;
+  }
+
+  /* Reduce marquee animation complexity on mobile */
+  .marquee-track-right {
+    animation-duration: 60s;
+  }
+
+  .marquee-track-left {
+    animation-duration: 60s;
+  }
+
+  /* Disable food column parallax transforms on mobile — handled in JS */
+  .food-col-left,
+  .food-col-right {
+    transform: none !important;
+    will-change: auto;
+  }
+
+  /* Existing mobile rules */
+  .title {
+    letter-spacing: 0.15em;
+  }
+
+  .subtitle {
+    letter-spacing: 0.3em;
+  }
+
+  .preloader-text {
+    font-size: clamp(1.2rem, 6vw, 2rem);
+    letter-spacing: 0.15em;
+  }
+
+  #programsSection {
+    padding: 48px 16px 56px;
+  }
+
+  .programs-headline {
+    letter-spacing: 0.06em;
+  }
+
+  .programs-subheading {
+    margin-bottom: 40px;
+  }
+
+  .nutrition-inner {
+    flex-direction: column;
+    gap: 48px;
+  }
+
+  .nutrition-visuals {
+    max-height: 400px;
+    width: 100%;
+  }
+
+  #nutritionSection {
+    padding: 60px 16px;
+  }
+
+  .transformation-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .transformation-before img,
+  .transformation-after img {
+    height: 250px;
+  }
+
+  #transformationSection {
+    padding: 60px 16px 80px;
+  }
+
+  #authorityMarquee {
+    height: 90px;
+  }
+
+  .marquee-text {
+    font-size: clamp(0.6rem, 2vw, 0.85rem);
+  }
+
+  .footer-inner {
+    padding: 32px 24px 16px;
+  }
+
+  .footer-headline {
+    font-size: clamp(1.6rem, 6vw, 3rem);
+    margin-bottom: 16px;
+  }
+
+  .footer-brand-name {
+    font-size: clamp(3.5rem, 16vw, 10rem);
+  }
+
+  /* ── Program cards: horizontal snap carousel on mobile ── */
+  .programs-grid {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    gap: 16px;
+    padding-bottom: 12px;
+    scrollbar-width: none;
+  }
+
+  .programs-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .program-card {
+    flex: 0 0 280px;
+    scroll-snap-align: center;
+    min-height: 380px;
+  }
+
+  /* Make card-body text visible — static position with bg on mobile */
+  .card-body {
+    position: relative;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: 14px 16px;
+  }
+
+  .card-image {
+    position: relative;
+    height: 240px;
+    width: 100%;
+  }
+
+  /* Carousel navigation arrows */
+  .programs-inner {
+    position: relative;
+  }
+
+  .carousel-nav {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 8px;
+  }
+
+  .carousel-nav button {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .carousel-nav button:hover {
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  /* Food card images — fixed height for consistency */
+  .food-card img {
+    height: 180px;
+  }
+
+  /* ── Transformation grid: horizontal scroll on mobile ── */
+  .transformation-grid {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    gap: 14px;
+    padding-bottom: 10px;
+    scrollbar-width: none;
+  }
+
+  .transformation-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .transformation-card {
+    flex: 0 0 260px;
+    scroll-snap-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .program-card {
+    flex: 0 0 260px;
+  }
+
+  .transformation-card {
+    flex: 0 0 240px;
+  }
+
+  .transformation-before img,
+  .transformation-after img {
+    height: 220px;
+  }
+
+  .transformation-headline {
+    font-size: clamp(1.1rem, 5vw, 1.6rem);
+    margin-bottom: 30px;
+  }
+
+  #authorityMarquee {
+    height: 80px;
+  }
+
+  .footer-inner {
+    padding: 24px 16px 12px;
+  }
+
+  .footer-top {
+    margin-bottom: 16px;
+  }
+
+  .footer-headline {
+    font-size: clamp(1.4rem, 7vw, 2.2rem);
+    margin-bottom: 14px;
+  }
+
+  .footer-brand-name {
+    font-size: clamp(2.5rem, 20vw, 6rem);
+  }
+
+  /* Nutrition section improvements for small screens */
+  .nutrition-headline {
+    font-size: clamp(1.3rem, 5vw, 1.8rem);
+  }
+
+  .nutrition-cta {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* ── Reduced motion preference ── */
+@media (prefers-reduced-motion: reduce) {
+
+  .marquee-track-right,
+  .marquee-track-left {
+    animation: none;
+  }
+
+  .program-card,
+  .transformation-card {
+    transition: none;
+  }
+
+  .footer-word {
+    transition: none;
+  }
+
+  #preloader {
+    transition: none;
+  }
+}

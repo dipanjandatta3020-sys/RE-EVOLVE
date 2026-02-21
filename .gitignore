@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+.vite/
+
+# Build output
+dist/
+dist-ssr/
+
+# Environment
+*.local
+*.env
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Editor
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+
+# OS
+Thumbs.db
+Desktop.ini

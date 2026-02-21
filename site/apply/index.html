@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply | RE-EVOLVE</title>
+    <meta name="description"
+        content="Apply for premium online coaching with RE-EVOLVE. Begin your transformation today.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&family=Montserrat:wght@200;300;400&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/apply/apply.css">
+</head>
+
+<body>
+    <div class="apply-page">
+
+        <!-- Back link -->
+        <a href="/" class="apply-back">← Back to Home</a>
+
+        <!-- Header -->
+        <div class="apply-header">
+            <h1 class="apply-headline">Begin Your Application</h1>
+            <p class="apply-subtext">Coaching is limited to a select number of clients each quarter. Apply below to be
+                considered.</p>
+        </div>
+
+        <!-- Application Form -->
+        <form class="apply-form" action="#" method="POST" id="applicationForm">
+
+            <div class="form-group">
+                <label for="fullName" class="form-label">Full Name</label>
+                <input type="text" id="fullName" name="fullName" class="form-input" placeholder="Your full name"
+                    required>
+            </div>
+
+            <div class="form-group">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" id="email" name="email" class="form-input" placeholder="you@example.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="phone" class="form-label">Phone</label>
+                <input type="tel" id="phone" name="phone" class="form-input" placeholder="+91 XXXX XXXX XX" required>
+            </div>
+
+            <div class="form-group">
+                <label for="fitnessLevel" class="form-label">Current Fitness Level</label>
+                <select id="fitnessLevel" name="fitnessLevel" class="form-input form-select" required>
+                    <option value="" disabled selected>Select your level</option>
+                    <option value="beginner">Beginner — New to structured training</option>
+                    <option value="intermediate">Intermediate — 1–3 years consistent training</option>
+                    <option value="advanced">Advanced — 3+ years, looking to elevate</option>
+                    <option value="athlete">Athlete — Competitive / sport-specific</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="primaryGoal" class="form-label">Primary Goal</label>
+                <select id="primaryGoal" name="primaryGoal" class="form-input form-select" required>
+                    <option value="" disabled selected>Select your goal</option>
+                    <option value="fat-loss">Fat Loss</option>
+                    <option value="muscle-gain">Muscle Gain / Lean Mass</option>
+                    <option value="recomposition">Body Recomposition</option>
+                    <option value="strength">Strength & Performance</option>
+                    <option value="general">General Health & Wellness</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="whyCoaching" class="form-label">Why do you want coaching?</label>
+                <textarea id="whyCoaching" name="whyCoaching" class="form-input form-textarea" rows="4"
+                    placeholder="Tell us briefly what you're looking for and what's driving your decision."
+                    required></textarea>
+            </div>
+
+            <button type="submit" class="apply-submit">Apply for Coaching</button>
+        </form>
+
+        <!-- Footer brand -->
+        <div class="apply-footer">
+            <span>© 2026 RE-EVOLVE. All rights reserved.</span>
+        </div>
+    </div>
+</body>
+
+</html>
