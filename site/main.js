@@ -122,8 +122,9 @@ function dismissPreloader() {
     }, remaining);
 }
 
-// Load first EAGER_COUNT frames immediately for fast first paint
-const EAGER_COUNT = isMobile ? 5 : 10;
+// ── 100% EAGER LOADING STRATEGY WITH PROGRESS INDICATOR ──
+// The user explicitly requested to wait 5-8 seconds for ALL frames to load
+// to guarantee a 100% seamless scroll animation on production networks.
 
 function loadFrame(index) {
     return new Promise((resolve) => {
@@ -131,56 +132,69 @@ function loadFrame(index) {
         img.src = `/ScrollAnimationIMG_webp/${frameNames[index]}`;
         img.onload = img.onerror = () => {
             framesLoaded++;
+            updateProgressUI();
             resolve();
         };
         frames[index] = img;
     });
 }
 
-const eagerPromises = [];
-for (let i = 0; i < Math.min(EAGER_COUNT, FRAME_COUNT); i++) {
-    eagerPromises.push(loadFrame(i));
+const loadingDotsEl = document.getElementById('loadingDots');
+
+function updateProgressUI() {
+    if (loadingDotsEl) {
+        const percent = Math.min(100, Math.floor((framesLoaded / FRAME_COUNT) * 100));
+        loadingDotsEl.innerText = `... ${percent}%`;
+    }
 }
 
-// Then load the rest via requestIdleCallback or setTimeout fallback
-const scheduleIdle = window.requestIdleCallback
-    ? (cb) => window.requestIdleCallback(cb, { timeout: 100 })
-    : (cb) => setTimeout(cb, 1);
+// Ensure the first and last frame load immediately, then chronological
+const priorityIndices = [0, FRAME_COUNT - 1];
+for (let i = 1; i < FRAME_COUNT - 1; i++) {
+    priorityIndices.push(i);
+}
 
-let nextFrameToLoad = EAGER_COUNT;
+let currentIndexToLoad = 0;
+const BATCH_SIZE = isMobile ? 15 : 25;
+let preloaderDismissed = false;
 
-function loadRemainingFrames() {
-    if (nextFrameToLoad >= FRAME_COUNT) {
-        if (framesLoaded >= FRAME_COUNT) {
+function loadAllFramesBatch() {
+    if (currentIndexToLoad >= FRAME_COUNT) {
+        if (!preloaderDismissed) {
+            preloaderDismissed = true;
             console.log(`All ${FRAME_COUNT} scroll frames preloaded`);
-            // Render draws to canvas, DOM dimensions are unaffected, so no GSAP refresh is needed here.
+            dismissPreloader();
         }
         return;
     }
 
-    const batchSize = isMobile ? 4 : 8;
-    const batchEnd = Math.min(nextFrameToLoad + batchSize, FRAME_COUNT);
+    const maxLoading = Math.min(currentIndexToLoad + BATCH_SIZE, FRAME_COUNT);
     const batchPromises = [];
 
-    for (let i = nextFrameToLoad; i < batchEnd; i++) {
-        batchPromises.push(loadFrame(i));
+    for (let i = currentIndexToLoad; i < maxLoading; i++) {
+        batchPromises.push(loadFrame(priorityIndices[i]));
     }
-    nextFrameToLoad = batchEnd;
+
+    currentIndexToLoad = maxLoading;
 
     Promise.all(batchPromises).then(() => {
-        // Continue loading next batch
-        // CRITICAL: NEVER call ScrollTrigger.refresh() here. It causes massive layout thrashing
-        // and scroll lag on production networks when triggered during an active user scroll.
-        scheduleIdle(loadRemainingFrames);
+        // Yield to main thread briefly before next batch
+        setTimeout(loadAllFramesBatch, 1);
     });
 }
 
-// Start eager loading
-Promise.all(eagerPromises).then(() => {
-    // DISMISS PRELOADER IMMEDIATELY AFTER EAGER FRAMES ARE LOADED
-    dismissPreloader();
-    scheduleIdle(loadRemainingFrames);
-});
+// Start the blocking load
+loadAllFramesBatch();
+
+// Safety Fallback: Do not hang the user forever if the network drops.
+// Max accepted wait time is 8 seconds as per user request.
+setTimeout(() => {
+    if (!preloaderDismissed) {
+        preloaderDismissed = true;
+        console.log(`Preloader timeout reached at ${framesLoaded}/${FRAME_COUNT} frames`);
+        dismissPreloader();
+    }
+}, 8000);
 
 // ─── RENDER A SINGLE FRAME WITH INTERPOLATION ───────────────────────────────
 
