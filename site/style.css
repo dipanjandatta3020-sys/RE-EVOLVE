@@ -859,7 +859,7 @@ body {
 
 .footer-email,
 .footer-phone {
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: clamp(0.9rem, 1.5vw, 1.15rem);
   font-weight: 400;
   letter-spacing: 0.04em;
