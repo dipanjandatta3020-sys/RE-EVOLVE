@@ -294,7 +294,8 @@ function initScrollAnimation() {
             start: "top top",
             // Pinning is explicitly handled natively by pure CSS `position: sticky` to allow for clean overlap.
             // We define the scroll trigger distance exactly to match the user's intent.
-            end: () => "+=" + (window.innerHeight || document.documentElement.clientHeight) * 2.5,
+            // Mobile uses a shorter distance (1.0) because 42 frames over 2.5 screens causes severe chop/lag.
+            end: () => "+=" + (window.innerHeight || document.documentElement.clientHeight) * (isMobile ? 1.0 : 2.5),
             scrub: true, // MUST be instantaneous so proxy doesn't trail behind the pin release
             invalidateOnRefresh: true,
             onLeave: () => {
