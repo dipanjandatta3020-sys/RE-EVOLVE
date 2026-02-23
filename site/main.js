@@ -279,10 +279,10 @@ function initScrollAnimation() {
         scrollTrigger: {
             trigger: "#heroWrapper",
             start: "top top",
-            end: "bottom bottom",
+            // Pinning is explicitly handled natively by pure CSS `position: sticky` to allow for clean overlap.
+            // We define the scroll trigger distance exactly to match the user's intent.
+            end: () => "+=" + (window.innerHeight || document.documentElement.clientHeight) * 2.5,
             scrub: true, // MUST be instantaneous so proxy doesn't trail behind the pin release
-            pin: "#heroSticky",
-            anticipatePin: 1,
             invalidateOnRefresh: true,
             onLeave: () => {
                 // Hard guarantee: The split second the pin releases,

@@ -30,7 +30,8 @@ body {
 
 /* ── ONE unified hero wrapper — provides scroll distance ── */
 #heroWrapper {
-  height: 250vh;
+  height: 450vh;
+  /* 250vh animation + 100vh sticky hold + 100vh overlay slide */
   position: relative;
   z-index: 1;
   background: #000;
@@ -40,6 +41,8 @@ body {
 
 /* ── Sticky viewport container — everything overlaps here ── */
 #heroSticky {
+  position: sticky;
+  top: 0;
   height: 100vh;
   width: 100vw;
   overflow: hidden;
@@ -53,8 +56,8 @@ body {
 #contentOverlay {
   position: relative;
   z-index: 10;
-  margin-top: -2px;
-  /* Close the 1px rounding gap from GSAP pin release */
+  margin-top: -100vh;
+  /* Pulls overlay up manually to slide mathematically over the sticky container */
   background: #000;
   /* Prevent transparency bleed */
 }
@@ -904,12 +907,6 @@ body {
   /* ── Mobile performance layer ── */
   body {
     -webkit-overflow-scrolling: touch;
-  }
-
-  /* Hero scroll distance on mobile — 300vh gives 200vh of scroll travel for 238 frames */
-  #heroWrapper {
-    height: 350vh;
-    /* 250vh scroll travel on mobile for smoother frame scrubbing */
   }
 
   /* Reduce backdrop-filter complexity on mobile */
