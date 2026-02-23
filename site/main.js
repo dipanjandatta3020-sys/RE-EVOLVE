@@ -122,12 +122,16 @@ function dismissPreloader() {
     }, remaining);
 }
 
-// ── 100% EAGER LOADING STRATEGY WITH PROGRESS INDICATOR ──
-// The user explicitly requested to wait 5-8 seconds for ALL frames to load
-// to guarantee a 100% seamless scroll animation on production networks.
+// ── 100% STRICT EAGER LOADING STRATEGY ──
+// This version blocks the preloader UNTIL framesLoaded === FRAME_COUNT.
+// No short safety timeouts that bypass the load.
 
 function loadFrame(index) {
     return new Promise((resolve) => {
+        if (frames[index] && frames[index].complete) {
+            resolve();
+            return;
+        }
         const img = new Image();
         img.src = `/ScrollAnimationIMG_webp/${frameNames[index]}`;
         img.onload = img.onerror = () => {
@@ -144,26 +148,31 @@ const loadingDotsEl = document.getElementById('loadingDots');
 function updateProgressUI() {
     if (loadingDotsEl) {
         const percent = Math.min(100, Math.floor((framesLoaded / FRAME_COUNT) * 100));
-        loadingDotsEl.innerText = `... ${percent}%`;
+        loadingDotsEl.innerText = `${percent}%`;
     }
 }
 
-// Ensure the first and last frame load immediately, then chronological
-const priorityIndices = [0, FRAME_COUNT - 1];
-for (let i = 1; i < FRAME_COUNT - 1; i++) {
-    priorityIndices.push(i);
-}
-
 let currentIndexToLoad = 0;
-const BATCH_SIZE = isMobile ? 15 : 25;
+// Smaller batches for mobile to prevent network choking and memory spikes
+const BATCH_SIZE = isMobile ? 8 : 20;
 let preloaderDismissed = false;
 
 function loadAllFramesBatch() {
     if (currentIndexToLoad >= FRAME_COUNT) {
-        if (!preloaderDismissed) {
+        // Double check all frames are truly loaded (in case of error frames)
+        if (framesLoaded >= FRAME_COUNT && !preloaderDismissed) {
             preloaderDismissed = true;
-            console.log(`All ${FRAME_COUNT} scroll frames preloaded`);
+            console.log(`All ${FRAME_COUNT} scroll frames loaded successfully.`);
             dismissPreloader();
+        } else if (currentIndexToLoad >= FRAME_COUNT && !preloaderDismissed) {
+            // If we reached the end but counts don't match (errors), wait a tiny bit and force it
+            // so the user isn't stuck forever on 99%
+            setTimeout(() => {
+                if (!preloaderDismissed) {
+                    preloaderDismissed = true;
+                    dismissPreloader();
+                }
+            }, 1000);
         }
         return;
     }
@@ -172,29 +181,19 @@ function loadAllFramesBatch() {
     const batchPromises = [];
 
     for (let i = currentIndexToLoad; i < maxLoading; i++) {
-        batchPromises.push(loadFrame(priorityIndices[i]));
+        batchPromises.push(loadFrame(i));
     }
 
     currentIndexToLoad = maxLoading;
 
+    // Load batches sequentially to be kinder to the mobile main thread & memory
     Promise.all(batchPromises).then(() => {
-        // Yield to main thread briefly before next batch
-        setTimeout(loadAllFramesBatch, 1);
+        setTimeout(loadAllFramesBatch, 10); // Small gap between batches
     });
 }
 
 // Start the blocking load
 loadAllFramesBatch();
-
-// Safety Fallback: Do not hang the user forever if the network drops.
-// Max accepted wait time is 8 seconds as per user request.
-setTimeout(() => {
-    if (!preloaderDismissed) {
-        preloaderDismissed = true;
-        console.log(`Preloader timeout reached at ${framesLoaded}/${FRAME_COUNT} frames`);
-        dismissPreloader();
-    }
-}, 8000);
 
 // ─── RENDER A SINGLE FRAME WITH INTERPOLATION ───────────────────────────────
 
