@@ -223,7 +223,8 @@ function renderFrame(index, fractionalProgress = 0) {
     let img1 = frames[index];
     let img2 = (index + 1 < FRAME_COUNT) ? frames[index + 1] : img1;
 
-    // Fallback logic if frames aren't loaded
+    // Fallback logic if frames aren't loaded or hit a rendering error
+    // Extremely important for mobile so it doesn't freeze halfway if an image fails
     if (!img1 || !img1.complete || !img1.naturalWidth) {
         let fallbackFound = false;
         for (let i = index - 1; i >= 0; i--) {
@@ -235,9 +236,11 @@ function renderFrame(index, fractionalProgress = 0) {
                 break;
             }
         }
-        if (!fallbackFound) {
-            if (lastDrawnImage) img1 = lastDrawnImage;
-            else return;
+        if (!fallbackFound && lastDrawnImage) {
+            img1 = lastDrawnImage;
+            img2 = img1;
+        } else if (!fallbackFound) {
+            return; // Can't draw anything yet
         }
     }
 
@@ -294,13 +297,16 @@ function initScrollAnimation() {
             start: "top top",
             // Pinning is explicitly handled natively by pure CSS `position: sticky` to allow for clean overlap.
             // We define the scroll trigger distance exactly to match the user's intent.
-            // Mobile uses a shorter distance (1.0) because 42 frames over 2.5 screens causes severe chop/lag.
-            end: () => "+=" + (window.innerHeight || document.documentElement.clientHeight) * (isMobile ? 1.0 : 2.5),
+            // Mobile: 1.5 matches the 350vh wrapper (150vh animation space + 100vh hold + 100vh overlay slide)
+            // Desktop: 2.5 matches the 450vh wrapper (250vh animation + 100vh hold + 100vh slide)
+            end: () => "+=" + (window.innerHeight || document.documentElement.clientHeight) * (isMobile ? 1.5 : 2.5),
             scrub: true, // MUST be instantaneous so proxy doesn't trail behind the pin release
             invalidateOnRefresh: true,
+            fastScrollEnd: true, // Speeds up scroll recovery if they flick down fast
             onLeave: () => {
                 // Hard guarantee: The split second the pin releases,
                 // we FORCE the absolute final frame to render immediately.
+                // This guarantees the sequence visually terminates at frame 43 on mobile without hanging.
                 renderFrame(totalFrames - 1, 0);
             }
         },
