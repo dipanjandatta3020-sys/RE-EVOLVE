@@ -3,7 +3,7 @@
     'use strict';
 
     var ADMIN_PASSWORD = 'RAJDEEP07';
-    var API_URL = window.RE_EVOLVE_API || 'https://re-evolve.onrender.com';
+    var API_URL = '';
     var AUTH_KEY = 're_evolve_admin_auth';
 
     // ── DOM Refs ──
