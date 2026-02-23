@@ -1,52 +1,50 @@
-/* ── RE-EVOLVE Admin Panel — JavaScript ── */
+/* ── RE-EVOLVE Admin Panel — JavaScript (API-backed) ── */
 (function () {
     'use strict';
 
-    const ADMIN_PASSWORD = 'RAJDEEP07';
-    const STORAGE_KEY = 're_evolve_applications';
-    const AUTH_KEY = 're_evolve_admin_auth';
+    var ADMIN_PASSWORD = 'RAJDEEP07';
+    var API_URL = window.RE_EVOLVE_API || 'https://re-evolve-server.onrender.com';
+    var AUTH_KEY = 're_evolve_admin_auth';
 
     // ── DOM Refs ──
-    const loginScreen = document.getElementById('loginScreen');
-    const dashboard = document.getElementById('dashboard');
-    const loginForm = document.getElementById('loginForm');
-    const loginPassword = document.getElementById('loginPassword');
-    const loginError = document.getElementById('loginError');
-    const togglePassword = document.getElementById('togglePassword');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const menuToggle = document.getElementById('menuToggle');
-    const sidebar = document.querySelector('.sidebar');
-    const pageTitle = document.getElementById('pageTitle');
-    const topbarTime = document.getElementById('topbarTime');
+    var loginScreen = document.getElementById('loginScreen');
+    var dashboard = document.getElementById('dashboard');
+    var loginForm = document.getElementById('loginForm');
+    var loginPassword = document.getElementById('loginPassword');
+    var loginError = document.getElementById('loginError');
+    var togglePassword = document.getElementById('togglePassword');
+    var logoutBtn = document.getElementById('logoutBtn');
+    var menuToggle = document.getElementById('menuToggle');
+    var sidebar = document.querySelector('.sidebar');
+    var pageTitle = document.getElementById('pageTitle');
+    var topbarTime = document.getElementById('topbarTime');
 
-    // Stats
-    const totalAppsEl = document.getElementById('totalApps');
-    const todayAppsEl = document.getElementById('todayApps');
-    const topGoalEl = document.getElementById('topGoal');
-    const lastAppTimeEl = document.getElementById('lastAppTime');
+    var totalAppsEl = document.getElementById('totalApps');
+    var todayAppsEl = document.getElementById('todayApps');
+    var topGoalEl = document.getElementById('topGoal');
+    var lastAppTimeEl = document.getElementById('lastAppTime');
 
-    // Tables
-    const recentTableBody = document.getElementById('recentTableBody');
-    const fullTableBody = document.getElementById('fullTableBody');
-    const recentEmpty = document.getElementById('recentEmpty');
-    const fullEmpty = document.getElementById('fullEmpty');
+    var recentTableBody = document.getElementById('recentTableBody');
+    var fullTableBody = document.getElementById('fullTableBody');
+    var recentEmpty = document.getElementById('recentEmpty');
+    var fullEmpty = document.getElementById('fullEmpty');
 
-    // Toolbar
-    const searchInput = document.getElementById('searchInput');
-    const filterGoal = document.getElementById('filterGoal');
-    const filterLevel = document.getElementById('filterLevel');
-    const exportBtn = document.getElementById('exportBtn');
-    const clearAllBtn = document.getElementById('clearAllBtn');
+    var searchInput = document.getElementById('searchInput');
+    var filterGoal = document.getElementById('filterGoal');
+    var filterLevel = document.getElementById('filterLevel');
+    var exportBtn = document.getElementById('exportBtn');
+    var clearAllBtn = document.getElementById('clearAllBtn');
 
-    // Modal
-    const detailModal = document.getElementById('detailModal');
-    const modalClose = document.getElementById('modalClose');
-    const modalName = document.getElementById('modalName');
-    const modalBody = document.getElementById('modalBody');
+    var detailModal = document.getElementById('detailModal');
+    var modalClose = document.getElementById('modalClose');
+    var modalName = document.getElementById('modalName');
+    var modalBody = document.getElementById('modalBody');
 
-    // Nav
-    const navItems = document.querySelectorAll('.nav-item');
-    const views = document.querySelectorAll('.view');
+    var navItems = document.querySelectorAll('.nav-item');
+    var views = document.querySelectorAll('.view');
+
+    // Cache
+    var cachedApps = [];
 
     // ── Auth ──
     function checkAuth() {
@@ -68,8 +66,7 @@
     });
 
     togglePassword.addEventListener('click', function () {
-        const type = loginPassword.type === 'password' ? 'text' : 'password';
-        loginPassword.type = type;
+        loginPassword.type = loginPassword.type === 'password' ? 'text' : 'password';
     });
 
     logoutBtn.addEventListener('click', function () {
@@ -82,14 +79,15 @@
         dashboard.style.display = 'flex';
         loadData();
         startClock();
-        startLivePolling();
+        // Poll every 3 seconds for real-time updates
+        setInterval(loadData, 3000);
     }
 
     // ── Navigation ──
     navItems.forEach(function (item) {
         item.addEventListener('click', function (e) {
             e.preventDefault();
-            const viewName = item.dataset.view;
+            var viewName = item.dataset.view;
             navItems.forEach(function (n) { n.classList.remove('active'); });
             item.classList.add('active');
             views.forEach(function (v) { v.classList.remove('active'); });
@@ -106,8 +104,7 @@
     // ── Clock ──
     function startClock() {
         function update() {
-            const now = new Date();
-            topbarTime.textContent = now.toLocaleString('en-IN', {
+            topbarTime.textContent = new Date().toLocaleString('en-IN', {
                 day: '2-digit', month: 'short', year: 'numeric',
                 hour: '2-digit', minute: '2-digit', second: '2-digit',
                 hour12: true
@@ -118,77 +115,47 @@
     }
 
     // ── Data ──
-    function getApplications() {
-        try {
-            return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-        } catch (e) {
-            return [];
-        }
-    }
-
-    function saveApplications(apps) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(apps));
-    }
-
-    function deleteApplication(index) {
-        const apps = getApplications();
-        apps.splice(index, 1);
-        saveApplications(apps);
-        loadData();
-    }
-
-    // ── Live polling for real-time ──
-    let lastCount = 0;
-    function startLivePolling() {
-        lastCount = getApplications().length;
-        setInterval(function () {
-            const apps = getApplications();
-            if (apps.length !== lastCount) {
-                lastCount = apps.length;
-                loadData();
-            }
-        }, 1000);
-    }
-
-    // ── Load & Render ──
     function loadData() {
-        const apps = getApplications();
-        updateStats(apps);
-        renderRecentTable(apps);
-        renderFullTable(apps);
+        fetch(API_URL + '/api/applications')
+            .then(function (res) { return res.json(); })
+            .then(function (apps) {
+                cachedApps = apps;
+                updateStats(apps);
+                renderRecentTable(apps);
+                renderFullTable(apps);
+            })
+            .catch(function (err) {
+                console.error('Failed to load data:', err);
+            });
     }
 
     function updateStats(apps) {
         totalAppsEl.textContent = apps.length;
 
-        // Today's apps
-        const today = new Date().toDateString();
-        const todayCount = apps.filter(function (a) { return new Date(a.timestamp).toDateString() === today; }).length;
+        var today = new Date().toISOString().slice(0, 10);
+        var todayCount = apps.filter(function (a) { return a.timestamp && a.timestamp.startsWith(today); }).length;
         todayAppsEl.textContent = todayCount;
 
-        // Top goal
         if (apps.length > 0) {
-            const goalCounts = {};
+            var goalCounts = {};
             apps.forEach(function (a) {
                 goalCounts[a.primaryGoal] = (goalCounts[a.primaryGoal] || 0) + 1;
             });
-            const topGoal = Object.keys(goalCounts).reduce(function (a, b) { return goalCounts[a] > goalCounts[b] ? a : b; });
+            var topGoal = Object.keys(goalCounts).reduce(function (a, b) { return goalCounts[a] > goalCounts[b] ? a : b; });
             topGoalEl.textContent = formatGoal(topGoal);
         } else {
             topGoalEl.textContent = '—';
         }
 
-        // Latest app time
         if (apps.length > 0) {
-            const latest = new Date(apps[0].timestamp);
-            lastAppTimeEl.textContent = formatTimeAgo(latest);
+            lastAppTimeEl.textContent = formatTimeAgo(new Date(apps[0].timestamp));
         } else {
             lastAppTimeEl.textContent = '—';
         }
     }
 
     function renderRecentTable(apps) {
-        const recent = apps.slice(0, 5);
+        var recent = apps.slice(0, 5);
         if (recent.length === 0) {
             recentTableBody.innerHTML = '';
             recentEmpty.style.display = 'block';
@@ -208,15 +175,15 @@
     }
 
     function renderFullTable(apps) {
-        const search = (searchInput.value || '').toLowerCase();
-        const goalFilter = filterGoal.value;
-        const levelFilter = filterLevel.value;
+        var search = (searchInput.value || '').toLowerCase();
+        var goalFilter = filterGoal.value;
+        var levelFilter = filterLevel.value;
 
-        let filtered = apps.filter(function (app) {
-            const matchSearch = !search || app.fullName.toLowerCase().includes(search) ||
-                app.email.toLowerCase().includes(search) || app.phone.includes(search);
-            const matchGoal = !goalFilter || app.primaryGoal === goalFilter;
-            const matchLevel = !levelFilter || app.fitnessLevel === levelFilter;
+        var filtered = apps.filter(function (app) {
+            var matchSearch = !search || app.fullName.toLowerCase().indexOf(search) !== -1 ||
+                app.email.toLowerCase().indexOf(search) !== -1 || app.phone.indexOf(search) !== -1;
+            var matchGoal = !goalFilter || app.primaryGoal === goalFilter;
+            var matchLevel = !levelFilter || app.fitnessLevel === levelFilter;
             return matchSearch && matchGoal && matchLevel;
         });
 
@@ -228,7 +195,6 @@
         fullEmpty.style.display = 'none';
 
         fullTableBody.innerHTML = filtered.map(function (app, i) {
-            const origIndex = apps.indexOf(app);
             return '<tr>' +
                 '<td>' + (i + 1) + '</td>' +
                 '<td class="cell-name">' + esc(app.fullName) + '</td>' +
@@ -239,10 +205,10 @@
                 '<td class="cell-reason">' + esc(app.whyCoaching) + '</td>' +
                 '<td class="cell-date">' + formatDate(app.timestamp) + '</td>' +
                 '<td><div class="row-actions">' +
-                '<button class="btn-icon" data-action="view" data-index="' + origIndex + '" title="View details">' +
+                '<button class="btn-icon" data-action="view" data-id="' + app.id + '" title="View details">' +
                 '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>' +
                 '</button>' +
-                '<button class="btn-icon danger" data-action="delete" data-index="' + origIndex + '" title="Delete">' +
+                '<button class="btn-icon danger" data-action="delete" data-id="' + app.id + '" data-name="' + esc(app.fullName) + '" title="Delete">' +
                 '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>' +
                 '</button>' +
                 '</div></td>' +
@@ -252,39 +218,41 @@
 
     // Table action delegation
     document.addEventListener('click', function (e) {
-        const btn = e.target.closest('[data-action]');
+        var btn = e.target.closest('[data-action]');
         if (!btn) return;
-        const action = btn.dataset.action;
-        const index = parseInt(btn.dataset.index, 10);
-        const apps = getApplications();
+        var action = btn.dataset.action;
+        var id = btn.dataset.id;
 
-        if (action === 'view' && apps[index]) {
-            openModal(apps[index]);
-        } else if (action === 'delete' && apps[index]) {
-            if (confirm('Delete application from ' + apps[index].fullName + '?')) {
-                deleteApplication(index);
+        if (action === 'view') {
+            var app = cachedApps.find(function (a) { return String(a.id) === String(id); });
+            if (app) openModal(app);
+        } else if (action === 'delete') {
+            var name = btn.dataset.name || 'this applicant';
+            if (confirm('Delete application from ' + name + '?')) {
+                fetch(API_URL + '/api/applications/' + id, { method: 'DELETE' })
+                    .then(function () { loadData(); })
+                    .catch(function () { alert('Failed to delete.'); });
             }
         }
     });
 
     // ── Toolbar Events ──
-    searchInput.addEventListener('input', function () { renderFullTable(getApplications()); });
-    filterGoal.addEventListener('change', function () { renderFullTable(getApplications()); });
-    filterLevel.addEventListener('change', function () { renderFullTable(getApplications()); });
+    searchInput.addEventListener('input', function () { renderFullTable(cachedApps); });
+    filterGoal.addEventListener('change', function () { renderFullTable(cachedApps); });
+    filterLevel.addEventListener('change', function () { renderFullTable(cachedApps); });
 
     exportBtn.addEventListener('click', function () {
-        const apps = getApplications();
-        if (apps.length === 0) { alert('No data to export.'); return; }
+        if (cachedApps.length === 0) { alert('No data to export.'); return; }
 
-        const headers = ['Full Name', 'Email', 'Phone', 'Fitness Level', 'Primary Goal', 'Why Coaching', 'Date & Time'];
-        const rows = apps.map(function (a) {
+        var headers = ['Full Name', 'Email', 'Phone', 'Fitness Level', 'Primary Goal', 'Why Coaching', 'Date & Time'];
+        var rows = cachedApps.map(function (a) {
             return [a.fullName, a.email, a.phone, a.fitnessLevel, a.primaryGoal, '"' + (a.whyCoaching || '').replace(/"/g, '""') + '"', formatDate(a.timestamp)];
         });
-        const csv = [headers.join(',')].concat(rows.map(function (r) { return r.join(','); })).join('\n');
+        var csv = [headers.join(',')].concat(rows.map(function (r) { return r.join(','); })).join('\n');
 
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        var blob = new Blob([csv], { type: 'text/csv' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
         a.href = url;
         a.download = 'RE-EVOLVE_Applications_' + new Date().toISOString().slice(0, 10) + '.csv';
         a.click();
@@ -293,8 +261,9 @@
 
     clearAllBtn.addEventListener('click', function () {
         if (confirm('Are you sure you want to delete ALL applications? This cannot be undone.')) {
-            localStorage.removeItem(STORAGE_KEY);
-            loadData();
+            fetch(API_URL + '/api/applications', { method: 'DELETE' })
+                .then(function () { loadData(); })
+                .catch(function () { alert('Failed to clear data.'); });
         }
     });
 
@@ -308,7 +277,6 @@
             modalRow('Primary Goal', '<span class="badge badge-goal">' + formatGoal(app.primaryGoal) + '</span>') +
             modalRow('Reason', esc(app.whyCoaching || '—')) +
             modalRow('Applied On', formatDate(app.timestamp));
-
         detailModal.style.display = 'flex';
     }
 
@@ -323,7 +291,7 @@
 
     // ── Helpers ──
     function formatGoal(goal) {
-        const map = {
+        var map = {
             'fat-loss': 'Fat Loss',
             'muscle-gain': 'Muscle Gain',
             'recomposition': 'Recomposition',
@@ -335,17 +303,14 @@
 
     function formatDate(ts) {
         if (!ts) return '—';
-        const d = new Date(ts);
-        return d.toLocaleString('en-IN', {
+        return new Date(ts).toLocaleString('en-IN', {
             day: '2-digit', month: 'short', year: 'numeric',
-            hour: '2-digit', minute: '2-digit',
-            hour12: true
+            hour: '2-digit', minute: '2-digit', hour12: true
         });
     }
 
     function formatTimeAgo(date) {
-        const now = new Date();
-        const diff = Math.floor((now - date) / 1000);
+        var diff = Math.floor((new Date() - date) / 1000);
         if (diff < 60) return 'Just now';
         if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
         if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
@@ -354,7 +319,7 @@
 
     function esc(str) {
         if (!str) return '';
-        const div = document.createElement('div');
+        var div = document.createElement('div');
         div.textContent = str;
         return div.innerHTML;
     }
