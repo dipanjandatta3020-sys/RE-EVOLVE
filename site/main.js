@@ -26,7 +26,7 @@ const contentTwo = document.getElementById("contentTwo");
 // ─── FRAME SEQUENCE (frame_0002.png → frame_0239.png = 238 frames) ────────
 
 const FRAME_START = 2;
-const FRAME_END = isMobile ? 43 : 239;
+const FRAME_END = 239;
 const FRAME_COUNT = FRAME_END - FRAME_START + 1; // 238
 
 const frameNames = [];
@@ -288,9 +288,8 @@ function initScrollAnimation() {
             start: "top top",
             // Pinning is explicitly handled natively by pure CSS `position: sticky` to allow for clean overlap.
             // We define the scroll trigger distance exactly to match the user's intent.
-            // Mobile: 1.5 matches the 350vh wrapper (150vh animation space + 100vh hold + 100vh overlay slide)
-            // Desktop: 2.5 matches the 450vh wrapper (250vh animation + 100vh hold + 100vh slide)
-            end: () => "+=" + (window.innerHeight || document.documentElement.clientHeight) * (isMobile ? 1.5 : 2.5),
+            // Restored `2.5` for both mobile and desktop so the 238 frames unfold evenly.
+            end: () => "+=" + (window.innerHeight || document.documentElement.clientHeight) * 2.5,
             scrub: true, // MUST be instantaneous so proxy doesn't trail behind the pin release
             invalidateOnRefresh: true,
             fastScrollEnd: true, // Speeds up scroll recovery if they flick down fast

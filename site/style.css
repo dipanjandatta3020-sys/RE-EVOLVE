@@ -909,12 +909,6 @@ body {
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Shorten the scroll distance for the 42-frame mobile sequence */
-  #heroWrapper {
-    height: 300vh;
-    /* 100vh animation + 100vh sticky + 100vh slide */
-  }
-
   /* Reduce backdrop-filter complexity on mobile */
   .card-body {
     backdrop-filter: blur(8px);
