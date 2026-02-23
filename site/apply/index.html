@@ -85,6 +85,42 @@
             <span>© 2026 RE-EVOLVE. All rights reserved.</span>
         </div>
     </div>
+    <script>
+        (function () {
+            const STORAGE_KEY = 're_evolve_applications';
+            const form = document.getElementById('applicationForm');
+
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const application = {
+                    fullName: document.getElementById('fullName').value.trim(),
+                    email: document.getElementById('email').value.trim(),
+                    phone: document.getElementById('phone').value.trim(),
+                    fitnessLevel: document.getElementById('fitnessLevel').value,
+                    primaryGoal: document.getElementById('primaryGoal').value,
+                    whyCoaching: document.getElementById('whyCoaching').value.trim(),
+                    timestamp: new Date().toISOString()
+                };
+
+                // Load existing applications
+                let apps = [];
+                try { apps = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch (e) { apps = []; }
+
+                // Add new application at the beginning (newest first)
+                apps.unshift(application);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(apps));
+
+                // Show success
+                form.innerHTML = '<div style="text-align:center;padding:60px 20px;">' +
+                    '<div style="font-size:3rem;margin-bottom:16px;">✓</div>' +
+                    '<h2 style="font-family:Cinzel,serif;font-size:1.4rem;letter-spacing:0.08em;margin-bottom:12px;color:#fff;">Application Submitted</h2>' +
+                    '<p style="font-size:0.9rem;color:rgba(255,255,255,0.55);line-height:1.6;">Thank you, ' + application.fullName.split(' ')[0] + '. We will review your application and get back to you shortly.</p>' +
+                    '<a href="/" style="display:inline-block;margin-top:28px;padding:12px 28px;border:1px solid rgba(255,255,255,0.3);border-radius:4px;color:#fff;text-decoration:none;font-size:0.82rem;letter-spacing:0.1em;text-transform:uppercase;font-family:Cinzel,serif;">Back to Home</a>' +
+                    '</div>';
+            });
+        })();
+    </script>
 </body>
 
 </html>
