@@ -115,7 +115,7 @@ function dismissPreloader() {
 
         // Force GSAP to recalculate everything now that overflow is visible
         requestAnimationFrame(() => {
-            ScrollTrigger.refresh();
+            ScrollTrigger.refresh(true);
         });
 
         setTimeout(() => preloader.remove(), 700);
@@ -153,7 +153,7 @@ function loadRemainingFrames() {
     if (nextFrameToLoad >= FRAME_COUNT) {
         if (framesLoaded >= FRAME_COUNT) {
             console.log(`All ${FRAME_COUNT} scroll frames preloaded`);
-            ScrollTrigger.refresh(); // Final sync
+            ScrollTrigger.refresh(true); // Final sync
         }
         return;
     }
@@ -169,7 +169,7 @@ function loadRemainingFrames() {
 
     Promise.all(batchPromises).then(() => {
         // Refresh ScrollTrigger occasionally as chunks of new frames load to prevent glitches
-        if (nextFrameToLoad % (batchSize * 3) === 0) ScrollTrigger.refresh();
+        if (nextFrameToLoad % (batchSize * 3) === 0) ScrollTrigger.refresh(true);
         scheduleIdle(loadRemainingFrames);
     });
 }
@@ -258,7 +258,17 @@ function renderFrame(index, fractionalProgress = 0) {
 
 gsap.registerPlugin(ScrollTrigger);
 
-window.addEventListener("load", () => {
+// ─── PRODUCTION-SAFE CONFIG ────────────────────────────────────────────────
+// Ignore mobile URL-bar collapse viewport changes; lock refresh events.
+ScrollTrigger.config({
+    ignoreMobileResize: true,
+    autoRefreshEvents: "DOMContentLoaded,load"
+});
+
+// ─── SCROLL ANIMATION INIT (called after layout stabilises) ────────────────
+function initScrollAnimation() {
+    // Safety: kill any existing triggers to prevent duplicate initialization
+    ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     const proxy = { frame: 0 };
     const totalFrames = FRAME_COUNT;
 
@@ -306,20 +316,25 @@ window.addEventListener("load", () => {
         }
     });
 
-    ScrollTrigger.refresh();
-});
-
-if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', () => {
-        if (resizeRafPending) return;
-        resizeRafPending = true;
-        requestAnimationFrame(() => {
-            resizeRafPending = false;
-            resizeCanvases();
-            ScrollTrigger.refresh();
-        });
+    // Force one extra full recalculation after first paint
+    requestAnimationFrame(() => {
+        ScrollTrigger.refresh(true);
     });
 }
+
+// ─── INIT ONLY AFTER FULL WINDOW LOAD + LAYOUT SETTLE DELAY ───────────────
+// 200ms allows fonts to finish rendering, images to decode,
+// layout shifts to settle, and Vercel CDN timing differences to stabilise.
+window.addEventListener("load", () => {
+    // Double RAF is cleaner than arbitrary timeout — waits for two
+    // browser paint cycles, ensuring layout is fully stable.
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            initScrollAnimation();
+            ScrollTrigger.refresh(true);
+        });
+    });
+});
 
 // ─── SUBTLE CURSOR DEPTH MOVEMENT (desktop only) ──────────────────────────
 
