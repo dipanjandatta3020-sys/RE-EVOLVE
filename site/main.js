@@ -153,7 +153,7 @@ function loadRemainingFrames() {
     if (nextFrameToLoad >= FRAME_COUNT) {
         if (framesLoaded >= FRAME_COUNT) {
             console.log(`All ${FRAME_COUNT} scroll frames preloaded`);
-            ScrollTrigger.refresh(true); // Final sync
+            // Render draws to canvas, DOM dimensions are unaffected, so no GSAP refresh is needed here.
         }
         return;
     }
@@ -168,8 +168,9 @@ function loadRemainingFrames() {
     nextFrameToLoad = batchEnd;
 
     Promise.all(batchPromises).then(() => {
-        // Refresh ScrollTrigger occasionally as chunks of new frames load to prevent glitches
-        if (nextFrameToLoad % (batchSize * 3) === 0) ScrollTrigger.refresh(true);
+        // Continue loading next batch
+        // CRITICAL: NEVER call ScrollTrigger.refresh() here. It causes massive layout thrashing
+        // and scroll lag on production networks when triggered during an active user scroll.
         scheduleIdle(loadRemainingFrames);
     });
 }
