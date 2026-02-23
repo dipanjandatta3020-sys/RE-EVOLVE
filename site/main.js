@@ -26,7 +26,7 @@ const contentTwo = document.getElementById("contentTwo");
 // ─── FRAME SEQUENCE (frame_0002.png → frame_0239.png = 238 frames) ────────
 
 const FRAME_START = 2;
-const FRAME_END = 239;
+const FRAME_END = isMobile ? 43 : 239;
 const FRAME_COUNT = FRAME_END - FRAME_START + 1; // 238
 
 const frameNames = [];
@@ -321,7 +321,7 @@ function initScrollAnimation() {
                 contentOne.style.visibility = "visible";
                 contentTwo.style.opacity = "0";
                 contentTwo.style.visibility = "hidden";
-            } else if (progress >= fadeInAt) {
+            } else if (!isMobile && progress >= fadeInAt) {
                 contentOne.style.opacity = "0";
                 contentOne.style.visibility = "hidden";
                 contentTwo.style.opacity = "1";
