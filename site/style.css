@@ -134,6 +134,51 @@ body {
   visibility: hidden;
 }
 
+/* ── Layer 4.5: Top Header Navigation ── */
+.hero-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 2rem 4rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 20;
+  pointer-events: auto;
+  /* Enable clicks */
+}
+
+.header-left,
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.header-link {
+  color: var(--text-primary);
+  text-decoration: none;
+  font-family: var(--font-serif);
+  font-size: 0.9rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 300;
+  opacity: 0.8;
+  transition: opacity 0.3s ease, text-shadow 0.3s ease;
+}
+
+.header-link:hover {
+  opacity: 1;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.header-dot {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  opacity: 0.6;
+}
+
 .title {
   font-family: var(--font-serif);
   font-size: clamp(3rem, 12vw, 8rem);
@@ -737,59 +782,16 @@ body {
   justify-content: space-between;
 }
 
-/* Top row: Contact Us + Join Now */
-.footer-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.footer-contact-label {
-  font-family: var(--font-serif);
-  font-size: 0.75rem;
-  font-weight: 400;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.8);
-  text-decoration: none;
-  transition: color 0.3s ease;
-}
-
-.footer-contact-label:hover {
-  color: #ffffff;
-}
-
-.footer-star {
-  font-size: 0.6rem;
-  margin-right: 6px;
-  opacity: 0.7;
-}
-
-.footer-join {
-  font-family: var(--font-serif);
-  font-size: 0.75rem;
-  font-weight: 400;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.7);
-  text-decoration: none;
-  transition: color 0.3s ease;
-}
-
-.footer-join:hover {
-  color: #b09a5c;
-}
-
 /* Main headline */
 .footer-headline {
   font-family: var(--font-serif);
-  font-size: clamp(2rem, 5vw, 4rem);
+  font-size: clamp(1.8rem, 4.5vw, 3.5rem);
   font-weight: 400;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.03em;
   line-height: 1.3;
   color: var(--text-primary);
   max-width: 700px;
+  margin-top: -20px;
   margin-bottom: 20px;
 }
 
@@ -802,6 +804,35 @@ body {
 
 .footer-word.illuminated {
   opacity: 1;
+}
+
+/* Join Now button */
+.footer-join-wrapper {
+  margin-bottom: 40px;
+}
+
+.footer-join-btn {
+  display: inline-block;
+  padding: 12px 32px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: var(--text-primary);
+  font-family: var(--font-serif);
+  font-size: 0.9rem;
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+}
+
+.footer-join-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.3);
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
 }
 
 /* Contact block */
@@ -856,7 +887,7 @@ body {
 
 .footer-brand-name {
   font-family: var(--font-serif);
-  font-size: clamp(3.5rem, 10vw, 11rem);
+  font-size: min(10vw, 11rem);
   font-weight: 400;
   letter-spacing: 0.25em;
   text-transform: uppercase;
@@ -865,6 +896,7 @@ body {
   display: block;
   user-select: none;
   white-space: nowrap;
+  width: 100%;
 }
 
 /* Copyright */
@@ -880,6 +912,10 @@ body {
   font-weight: 400;
   letter-spacing: 0.1em;
   color: rgba(255, 255, 255, 0.2);
+}
+
+.footer-credit {
+  margin-left: 20px;
 }
 
 /* Hide carousel nav on desktop */
@@ -903,6 +939,21 @@ body {
 }
 
 @media (max-width: 768px) {
+
+  .hero-header {
+    padding: 1.5rem 1rem;
+    align-items: flex-start;
+  }
+
+  .header-left,
+  .header-right {
+    gap: 0.6rem;
+  }
+
+  .header-link {
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+  }
 
   /* ── Mobile performance layer ── */
   body {
@@ -1007,11 +1058,7 @@ body {
 
   .footer-headline {
     font-size: clamp(1.6rem, 6vw, 3rem);
-    margin-bottom: 16px;
-  }
-
-  .footer-brand-name {
-    font-size: clamp(3.5rem, 16vw, 10rem);
+    margin-bottom: 25px;
   }
 
   /* ── Program cards: horizontal snap carousel on mobile ── */
