@@ -23,17 +23,15 @@ body {
   background-color: var(--bg-color);
   color: var(--text-primary);
   font-family: var(--font-sans);
-  overflow-x: hidden;
-  width: 100vw;
+  width: 100%;
   margin: 0;
   overscroll-behavior: none;
 }
 
 /* ── ONE unified hero wrapper — provides scroll distance ── */
 #heroWrapper {
-  position: relative;
   height: 250vh;
-  /* 150vh scroll distance — gives last frame room to hold */
+  position: relative;
   background: #000;
 }
 
@@ -41,12 +39,8 @@ body {
 
 /* ── Sticky viewport container — everything overlaps here ── */
 #heroSticky {
-  position: sticky;
-  top: 0;
-  width: 100vw;
-  height: 100vh;
   height: 100svh;
-  /* svh = small viewport height — consistent on mobile, ignores dynamic toolbar */
+  width: 100vw;
   overflow: hidden;
   background: #000;
   transform: translateZ(0);

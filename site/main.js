@@ -113,8 +113,9 @@ function dismissPreloader() {
 
         preloader.classList.add("hidden");
 
+        // Force GSAP to recalculate everything now that overflow is visible
         requestAnimationFrame(() => {
-            updateFromScroll();
+            ScrollTrigger.refresh();
         });
 
         setTimeout(() => preloader.remove(), 700);
@@ -122,7 +123,7 @@ function dismissPreloader() {
 }
 
 // Load first EAGER_COUNT frames immediately for fast first paint
-const EAGER_COUNT = isMobile ? 3 : 6; // Less eager frames on mobile for faster TTI
+const EAGER_COUNT = isMobile ? 5 : 10;
 
 function loadFrame(index) {
     return new Promise((resolve) => {
@@ -152,11 +153,12 @@ function loadRemainingFrames() {
     if (nextFrameToLoad >= FRAME_COUNT) {
         if (framesLoaded >= FRAME_COUNT) {
             console.log(`All ${FRAME_COUNT} scroll frames preloaded`);
+            ScrollTrigger.refresh(); // Final sync
         }
         return;
     }
 
-    const batchSize = isMobile ? 3 : 6;
+    const batchSize = isMobile ? 4 : 8;
     const batchEnd = Math.min(nextFrameToLoad + batchSize, FRAME_COUNT);
     const batchPromises = [];
 
@@ -166,10 +168,13 @@ function loadRemainingFrames() {
     nextFrameToLoad = batchEnd;
 
     Promise.all(batchPromises).then(() => {
+        // Refresh ScrollTrigger occasionally as chunks of new frames load to prevent glitches
+        if (nextFrameToLoad % (batchSize * 3) === 0) ScrollTrigger.refresh();
         scheduleIdle(loadRemainingFrames);
     });
 }
 
+// Start eager loading
 Promise.all(eagerPromises).then(() => {
     // DISMISS PRELOADER IMMEDIATELY AFTER EAGER FRAMES ARE LOADED
     dismissPreloader();
@@ -247,82 +252,63 @@ function renderFrame(index, fractionalProgress = 0) {
     scrollCtx.globalAlpha = 1.0; // Reset alpha
 }
 
-// ─── SCROLL-DRIVEN UPDATE — linear mapping, no easing ─────────────────────
+// ─── CSS 250vh handles the fixed scroll distance. No JS height math needed. ───
 
-let scrollRafPending = false;
+// ─── SCROLL-DRIVEN UPDATE via GSAP ScrollTrigger ─────────────────────────────
 
-function updateFromScroll() {
-    const wrapperRect = heroWrapper.getBoundingClientRect();
-    const scrollableDistance = heroWrapper.offsetHeight - cachedH;
-    if (scrollableDistance <= 0) return;
+gsap.registerPlugin(ScrollTrigger);
 
-    const scrolled = -wrapperRect.top;
-    const progress = Math.max(0, Math.min(1, scrolled / scrollableDistance));
+window.addEventListener("load", () => {
+    const proxy = { frame: 0 };
+    const totalFrames = FRAME_COUNT;
 
-    const exactFrame = progress * (FRAME_COUNT - 1);
-    const frameIndex = Math.floor(exactFrame);
-    const fractionalProgress = exactFrame - frameIndex;
+    gsap.to(proxy, {
+        frame: totalFrames - 1,
+        ease: "none",
+        scrollTrigger: {
+            trigger: "#heroWrapper",
+            start: "top top",
+            end: "bottom bottom",
+            scrub: 0.5,
+            pin: "#heroSticky",
+            anticipatePin: 1,
+            invalidateOnRefresh: true
+        },
+        onUpdate: () => {
+            const exactFrame = proxy.frame;
+            const frameIndex = Math.floor(exactFrame);
+            const fractionalProgress = exactFrame - frameIndex;
 
-    // We now update on every frame if there is fraction changing
-    currentFrameIndex = frameIndex;
-    renderFrame(frameIndex, fractionalProgress);
+            currentFrameIndex = frameIndex;
+            renderFrame(frameIndex, fractionalProgress);
 
-    // Text layer switching — earlier threshold on mobile so second text is visible longer
-    const fadeOutAt = isMobile ? 0.10 : 0.08;
-    const fadeInAt = isMobile ? 0.80 : 0.85;
+            // Text layer switching
+            const progress = proxy.frame / (totalFrames - 1);
+            const fadeOutAt = isMobile ? 0.10 : 0.08;
+            const fadeInAt = isMobile ? 0.80 : 0.85;
 
-    if (progress <= fadeOutAt) {
-        contentOne.style.opacity = "1";
-        contentOne.style.visibility = "visible";
-        contentTwo.style.opacity = "0";
-        contentTwo.style.visibility = "hidden";
-    } else if (progress >= fadeInAt) {
-        contentOne.style.opacity = "0";
-        contentOne.style.visibility = "hidden";
-        contentTwo.style.opacity = "1";
-        contentTwo.style.visibility = "visible";
-    } else {
-        contentOne.style.opacity = "0";
-        contentOne.style.visibility = "hidden";
-        contentTwo.style.opacity = "0";
-        contentTwo.style.visibility = "hidden";
-    }
-}
-
-function onScroll() {
-    if (scrollRafPending) return;
-    scrollRafPending = true;
-    requestAnimationFrame(() => {
-        scrollRafPending = false;
-        updateFromScroll();
+            if (progress <= fadeOutAt) {
+                contentOne.style.opacity = "1";
+                contentOne.style.visibility = "visible";
+                contentTwo.style.opacity = "0";
+                contentTwo.style.visibility = "hidden";
+            } else if (progress >= fadeInAt) {
+                contentOne.style.opacity = "0";
+                contentOne.style.visibility = "hidden";
+                contentTwo.style.opacity = "1";
+                contentTwo.style.visibility = "visible";
+            } else {
+                contentOne.style.opacity = "0";
+                contentOne.style.visibility = "hidden";
+                contentTwo.style.opacity = "0";
+                contentTwo.style.visibility = "hidden";
+            }
+        }
     });
-}
 
-window.addEventListener('scroll', onScroll, { passive: true });
-updateFromScroll();
-
-// Recalculate after full page load — critical for real mobile where
-// dynamic toolbar resizes the viewport after DOMContentLoaded
-window.addEventListener('load', () => {
-    resizeCanvases();
-    updateFromScroll();
-
-    // Delayed second refresh — catches late iOS Safari toolbar resize
-    setTimeout(() => {
-        resizeCanvases();
-        updateFromScroll();
-    }, 300);
+    ScrollTrigger.refresh();
 });
 
-// Re-sync when tab becomes visible again
-document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) {
-        resizeCanvases();
-        updateFromScroll();
-    }
-});
-
-// Listen to visualViewport resize for real mobile toolbar changes
 if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', () => {
         if (resizeRafPending) return;
@@ -330,6 +316,7 @@ if (window.visualViewport) {
         requestAnimationFrame(() => {
             resizeRafPending = false;
             resizeCanvases();
+            ScrollTrigger.refresh();
         });
     });
 }
