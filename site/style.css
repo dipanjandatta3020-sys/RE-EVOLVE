@@ -53,7 +53,8 @@ body {
 #contentOverlay {
   position: relative;
   z-index: 10;
-  margin-top: -100vh;
+  margin-top: -2px;
+  /* Close the 1px rounding gap from GSAP pin release */
   background: #000;
   /* Prevent transparency bleed */
 }

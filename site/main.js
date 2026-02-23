@@ -280,10 +280,15 @@ function initScrollAnimation() {
             trigger: "#heroWrapper",
             start: "top top",
             end: "bottom bottom",
-            scrub: 0.5,
+            scrub: true, // MUST be instantaneous so proxy doesn't trail behind the pin release
             pin: "#heroSticky",
             anticipatePin: 1,
-            invalidateOnRefresh: true
+            invalidateOnRefresh: true,
+            onLeave: () => {
+                // Hard guarantee: The split second the pin releases,
+                // we FORCE the absolute final frame to render immediately.
+                renderFrame(totalFrames - 1, 0);
+            }
         },
         onUpdate: () => {
             const exactFrame = proxy.frame;
