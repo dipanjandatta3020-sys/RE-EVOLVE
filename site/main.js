@@ -91,11 +91,8 @@ const loadingDots = document.getElementById("loadingDots");
 document.body.style.overflow = "hidden";
 window.scrollTo(0, 0);
 
-let dotCount = 0;
-const dotInterval = setInterval(() => {
-    dotCount = (dotCount % 5) + 1;
-    loadingDots.textContent = '.'.repeat(dotCount);
-}, 300);
+// Removed blinking dots interval per user request
+loadingDots.textContent = "0%";
 
 const preloaderStart = Date.now();
 
@@ -104,7 +101,6 @@ function dismissPreloader() {
     const remaining = Math.max(0, 1500 - elapsed);
 
     setTimeout(() => {
-        clearInterval(dotInterval);
         window.scrollTo(0, 0);
         document.body.style.overflow = "";
 
@@ -159,20 +155,15 @@ let preloaderDismissed = false;
 
 function loadAllFramesBatch() {
     if (currentIndexToLoad >= FRAME_COUNT) {
-        // Double check all frames are truly loaded (in case of error frames)
+        // Double check ALL frames are explicitly loaded into the array
         if (framesLoaded >= FRAME_COUNT && !preloaderDismissed) {
             preloaderDismissed = true;
             console.log(`All ${FRAME_COUNT} scroll frames loaded successfully.`);
             dismissPreloader();
-        } else if (currentIndexToLoad >= FRAME_COUNT && !preloaderDismissed) {
-            // If we reached the end but counts don't match (errors), wait a tiny bit and force it
-            // so the user isn't stuck forever on 99%
-            setTimeout(() => {
-                if (!preloaderDismissed) {
-                    preloaderDismissed = true;
-                    dismissPreloader();
-                }
-            }, 1000);
+        } else if (currentIndexToLoad >= FRAME_COUNT) {
+            // Wait actively until framesLoaded actually reaches FRAME_COUNT
+            // We do NOT dismiss until 100% is mathematically true
+            setTimeout(loadAllFramesBatch, 50);
         }
         return;
     }
@@ -311,7 +302,16 @@ function initScrollAnimation() {
             }
         },
         onUpdate: () => {
-            const exactFrame = proxy.frame;
+            let exactFrame = proxy.frame;
+
+            // Hard Scroll Lock: Force scroll progress to never exceed loaded frames.
+            // Under normal circumstances with the 100% eager loader, this is a 
+            // secondary safety net guaranteeing the UI physically cannot tear past 
+            // the animation sequence on mobile.
+            if (exactFrame > framesLoaded - 1) {
+                exactFrame = Math.max(0, framesLoaded - 1);
+            }
+
             const frameIndex = Math.floor(exactFrame);
             const fractionalProgress = exactFrame - frameIndex;
 
