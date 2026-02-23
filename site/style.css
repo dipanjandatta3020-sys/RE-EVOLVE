@@ -32,6 +32,7 @@ body {
 #heroWrapper {
   height: 250vh;
   position: relative;
+  z-index: 1;
   background: #000;
 }
 
@@ -46,6 +47,14 @@ body {
   transform: translateZ(0);
   /* Hardware acceleration for smoother iOS rendering */
   touch-action: pan-y;
+}
+
+/* ── Content Overlay — visually floats over the hero animation ── */
+#contentOverlay {
+  position: relative;
+  z-index: 10;
+  background: #000;
+  /* Prevent transparency bleed */
 }
 
 /* ── Layer 1: Frame animation canvas (THE background) ── */
