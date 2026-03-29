@@ -9,22 +9,22 @@ const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 
 // ─── SCENES CONFIGURATION ──────────────────────────────────────────────────
 const SCENES = [
   {
-    bg: '/1st%20Background.png',
-    char: '/1st%20Character.png',
+    bg: '/1st%20Background.webp',
+    char: '/1st%20Character.webp',
     accent: '#DAAB2D',
     gradient: 'linear-gradient(135deg, #DAAB2D, #F5D76E)',
     glow: 'rgba(218,171,45,0.35)'
   },
   {
-    bg: '/2nd%20Background.png',
-    char: '/2nd%20Character.png',
+    bg: '/2nd%20Background.webp',
+    char: '/2nd%20Character.webp',
     accent: '#E63946',
     gradient: 'linear-gradient(135deg, #1A1A1A, #E63946)',
     glow: 'rgba(230,57,70,0.35)'
   },
   {
-    bg: '/3rd%20Background.png',
-    char: '/3rd%20Character.png',
+    bg: '/3rd%20Background.webp',
+    char: '/3rd%20Character.webp',
     accent: '#7B2CBF',
     gradient: 'linear-gradient(135deg, #240046, #9D4EDD)',
     glow: 'rgba(123,44,191,0.35)'
@@ -238,6 +238,25 @@ const cursorObserver = new IntersectionObserver((entries) => {
 }, { threshold: [0, 0.3, 0.5] });
 
 if (heroWrapper) cursorObserver.observe(heroWrapper);
+
+// ─── MOBILE HAMBURGER MENU ────────────────────────────────────────────────
+const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+const navLinksEl = document.getElementById('navLinks');
+
+if (mobileMenuBtn && navLinksEl) {
+    mobileMenuBtn.addEventListener('click', () => {
+        mobileMenuBtn.classList.toggle('active');
+        navLinksEl.classList.toggle('mobile-open');
+    });
+
+    // Close menu when a link is clicked
+    navLinksEl.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+            mobileMenuBtn.classList.remove('active');
+            navLinksEl.classList.remove('mobile-open');
+        });
+    });
+}
 
 // ─── MOBILE CAROUSEL NAVIGATION ───────────────────────────────────────────
 if (isMobile) {

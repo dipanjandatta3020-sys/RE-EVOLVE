@@ -12,7 +12,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&family=Montserrat:wght@200;300;400&display=swap"
         rel="stylesheet">
-    <link rel="preload" as="image" href="/ScrollAnimationIMG_webp/frame_0002.webp">
+    <link rel="preload" as="image" href="/1st%20Background.webp" type="image/webp">
     <link rel="stylesheet" href="./style.css">
 
     <!-- GSAP / ScrollTrigger -->
@@ -35,9 +35,9 @@
 
         <!-- 1. LAYER ONE: Background Images -->
         <div id="heroBgContainer">
-            <img src="/1st%20Background.png" class="hero-bg scene-active" alt="Gym Background 1">
-            <img src="/2nd%20Background.png" class="hero-bg scene-inactive" alt="Gym Background 2">
-            <img src="/3rd%20Background.png" class="hero-bg scene-inactive" alt="Gym Background 3">
+            <img src="/1st%20Background.webp" class="hero-bg scene-active" alt="Gym Background 1" fetchpriority="high">
+            <img src="/2nd%20Background.webp" class="hero-bg scene-inactive" alt="Gym Background 2" loading="lazy">
+            <img src="/3rd%20Background.webp" class="hero-bg scene-inactive" alt="Gym Background 3" loading="lazy">
         </div>
 
         <!-- 2. LAYER TWO: Lighting & Depth -->
@@ -68,16 +68,19 @@
 
         <!-- 5. LAYER FIVE: Character Overlay -->
         <div id="heroCharContainer">
-            <img src="/1st%20Character.png" class="hero-char scene-active char-glow-1" alt="Athlete 1">
-            <img src="/2nd%20Character.png" class="hero-char scene-inactive char-glow-2" alt="Athlete 2">
-            <img src="/3rd%20Character.png" class="hero-char scene-inactive char-glow-3" alt="Athlete 3">
+            <img src="/1st%20Character.webp" class="hero-char scene-active char-glow-1" alt="Athlete 1" fetchpriority="high">
+            <img src="/2nd%20Character.webp" class="hero-char scene-inactive char-glow-2" alt="Athlete 2" loading="lazy">
+            <img src="/3rd%20Character.webp" class="hero-char scene-inactive char-glow-3" alt="Athlete 3" loading="lazy">
         </div>
 
         <!-- 6. LAYER SIX: Navbar Links & Text -->
         <header class="hero-navbar">
             <div class="nav-container">
                 <div class="nav-brand">Re-Evolve</div>
-                <div class="nav-links">
+                <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open menu">
+                    <span></span><span></span><span></span>
+                </button>
+                <div class="nav-links" id="navLinks">
                     <a href="#">About Us</a>
                     <a href="#">Services</a>
                     <a href="#">Project</a>
