@@ -57,7 +57,7 @@ body {
   z-index: 0;
   background: #000;
 }
-.hero-bg, .hero-char {
+.hero-bg, .hero-mobile-bg, .hero-char {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -68,12 +68,16 @@ body {
 .hero-bg {
   object-position: center;
 }
-.hero-bg.scene-active {
+.hero-mobile-bg {
+  object-position: center;
+  display: none;
+}
+.hero-bg.scene-active, .hero-mobile-bg.scene-active {
   opacity: 1;
   transform: scale(1);
   filter: blur(0px) brightness(1);
 }
-.hero-bg.scene-inactive {
+.hero-bg.scene-inactive, .hero-mobile-bg.scene-inactive {
   opacity: 0;
   transform: scale(0.97);
   filter: blur(4px) brightness(0.7);
@@ -1067,8 +1071,14 @@ body {
 
 @media (max-width: 768px) {
 
-  /* Cinematic Z-Index Layering: Move character behind lighting and text */
-  #heroCharContainer {
+  /* Mobile Background Handling */
+  .hero-bg, #heroCharContainer {
+    display: none !important;
+  }
+  .hero-mobile-bg {
+    display: block !important;
+  }
+  .hero-lighting {
     z-index: 5;
   }
 

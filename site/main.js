@@ -11,6 +11,7 @@ const SCENES = [
   {
     bg: '/1st%20Background.webp',
     char: '/1st%20Character.webp',
+    mobileBg: '/Mobile%201.webp',
     accent: '#DAAB2D',
     gradient: 'linear-gradient(135deg, #DAAB2D, #F5D76E)',
     glow: 'rgba(218,171,45,0.35)'
@@ -18,6 +19,7 @@ const SCENES = [
   {
     bg: '/2nd%20Background.webp',
     char: '/2nd%20Character.webp',
+    mobileBg: '/Mobile%202.webp',
     accent: '#E63946',
     gradient: 'linear-gradient(135deg, #1A1A1A, #E63946)',
     glow: 'rgba(230,57,70,0.35)'
@@ -25,6 +27,7 @@ const SCENES = [
   {
     bg: '/3rd%20Background.webp',
     char: '/3rd%20Character.webp',
+    mobileBg: '/Mobile%203.webp',
     accent: '#7B2CBF',
     gradient: 'linear-gradient(135deg, #240046, #9D4EDD)',
     glow: 'rgba(123,44,191,0.35)'
@@ -34,6 +37,7 @@ const SCENES = [
 // ─── BACKGROUND & HERO ELEMENTS ──────────────────────────────────────────────
 const heroWrapper = document.getElementById("cinematicHeroWrapper");
 const bgs = document.querySelectorAll('.hero-bg');
+const mobileBgs = document.querySelectorAll('.hero-mobile-bg');
 const chars = document.querySelectorAll('.hero-char');
 const heroHighlight = document.getElementById('heroHighlight');
 const mainCta = document.getElementById('mainCtaButton');
@@ -51,7 +55,7 @@ if (loadingDots) loadingDots.textContent = "0%";
 const preloaderStart = Date.now();
 
 let framesLoaded = 0;
-const totalAssetsToLoad = SCENES.length * 2; // 3 bg + 3 char = 6
+const totalAssetsToLoad = SCENES.length * 3; // 3 bg + 3 char + 3 mobile = 9
 
 function updateProgressUI() {
     if (loadingDots) {
@@ -76,7 +80,7 @@ function dismissPreloader() {
 
 // Preload the 6 premium hero images before dismissing loading screen
 SCENES.forEach(scene => {
-    [scene.bg, scene.char].forEach(url => {
+    [scene.bg, scene.char, scene.mobileBg].forEach(url => { if(!url) return;
         const img = new Image();
         img.src = url;
         img.onload = img.onerror = () => {
@@ -96,6 +100,10 @@ function applyScene(index) {
     
     // Crossfade Class Toggles
     bgs.forEach((bg, i) => {
+        bg.classList.toggle('scene-active', i === index);
+        bg.classList.toggle('scene-inactive', i !== index);
+    });
+    mobileBgs.forEach((bg, i) => {
         bg.classList.toggle('scene-active', i === index);
         bg.classList.toggle('scene-inactive', i !== index);
     });
