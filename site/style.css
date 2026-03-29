@@ -1067,6 +1067,16 @@ body {
 
 @media (max-width: 768px) {
 
+  /* Cinematic Z-Index Layering: Move character behind lighting and text */
+  #heroCharContainer {
+    z-index: 5;
+  }
+
+  /* Always center the character image on mobile for future assets */
+  .hero-char {
+    object-position: center center !important;
+  }
+
   .hero-header {
     padding: 1.5rem 1rem;
     align-items: flex-start;
